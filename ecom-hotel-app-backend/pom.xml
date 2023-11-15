@@ -9,10 +9,10 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>dev.concat.vab</groupId>
-    <artifactId>ecom-hotel-app</artifactId>
+    <artifactId>ecom-hotel-app-backend</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>ecom-hotel-app</name>
-    <description>ecom-hotel-app</description>
+    <name>ecom-hotel-app-backend</name>
+    <description>ecom-hotel-app-backend</description>
     <properties>
         <java.version>8</java.version>
     </properties>

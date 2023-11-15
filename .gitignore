@@ -1,8 +1,12 @@
 
-ecom-hotel-app/mvnw.cmd
-ecom-hotel-app/mvnw
-ecom-hotel-app/.mvn/wrapper/maven-wrapper.jar
+ecom-hotel-app-backend/mvnw.cmd
+ecom-hotel-app-backend/mvnw
+ecom-hotel-app-backend/.mvn/wrapper/maven-wrapper.jar
 *.jar
-ecom-hotel-app/.mvn/wrapper/maven-wrapper.jar
-ecom-hotel-app/.mvn/wrapper/maven-wrapper.jar
+ecom-hotel-app-backend/.mvn/wrapper/maven-wrapper.jar
+ecom-hotel-app-backend/.mvn/wrapper/maven-wrapper.jar
 *.jar
+.idea/misc.xml
+.idea/modules.xml
+.idea/vcs.xml
+.idea/ecom-hotel-app-backend.iml

@@ -1,1 +1,1 @@
-# ecom-hotel-app
+# ecom-hotel-app-backend
