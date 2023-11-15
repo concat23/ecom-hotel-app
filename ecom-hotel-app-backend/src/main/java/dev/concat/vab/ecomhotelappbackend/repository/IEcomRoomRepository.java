@@ -1,4 +1,15 @@
 package dev.concat.vab.ecomhotelappbackend.repository;
 
-public interface IEcomRoomRepository {
+import dev.concat.vab.ecomhotelappbackend.model.EcomRoom;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+
+@Repository
+public interface IEcomRoomRepository extends JpaRepository<EcomRoom, Long> {
+
+    @Query("SELECT DISTINCT er.roomType FROM EcomRoom er")
+    List<String> findDistinctRoomTypes();
 }

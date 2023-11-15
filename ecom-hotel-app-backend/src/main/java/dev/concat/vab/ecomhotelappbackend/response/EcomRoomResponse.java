@@ -1,5 +1,6 @@
 package dev.concat.vab.ecomhotelappbackend.response;
 
+import dev.concat.vab.ecomhotelappbackend.model.EcomRoom;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -33,5 +34,15 @@ public class EcomRoomResponse {
         this.idBooked = idBooked;
         this.photo = photoBytes != null ? Base64.getEncoder().encodeToString(photoBytes) : null ;
         this.bookings = bookings;
+    }
+
+
+    public static EcomRoomResponse fromEcomRoom(EcomRoom ecomRoom) {
+        EcomRoomResponse response = new EcomRoomResponse();
+        response.setId(ecomRoom.getId());
+        response.setRoomType(ecomRoom.getRoomType());
+        response.setRoomPrice(ecomRoom.getRoomPrice());
+        // set other fields as needed
+        return response;
     }
 }

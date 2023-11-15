@@ -2,7 +2,7 @@ FROM maven:3.8.2 AS build
 WORKDIR /ecom-hotel-app-backend
 COPY pom.xml /ecom-hotel-app-backend
 RUN mvn dependency:resolve
-COPY . /ecom-hotel-app
+COPY . /ecom-hotel-app-backend
 RUN mvn clean
 RUN mvn package -DskipTests
 

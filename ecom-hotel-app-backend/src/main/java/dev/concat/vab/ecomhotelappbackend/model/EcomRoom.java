@@ -31,13 +31,12 @@ public class EcomRoom {
     @Lob
     private Blob photo;
 
-    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "room",fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<EcomBookedRoom> bookings;
 
     public EcomRoom(){
         this.bookings = new ArrayList<>();
     }
-
     public void addBooking(EcomBookedRoom bookedRoom){
         logger.info("Checking: EcomRoom:class > addBooking:method");
         logger.info("Checking: bookings<List>:property is null ?");
