@@ -1,0 +1,16 @@
+package dev.concat.vab.ecomhotelappbackend.utils;
+import java.security.SecureRandom;
+public class RandomStringUtils {
+    private static final String ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    private static final SecureRandom random = new SecureRandom();
+
+    public static String generateRandomString(int length) {
+        StringBuilder sb = new StringBuilder(length);
+        for (int i = 0; i < length; i++) {
+            int randomIndex = random.nextInt(ALPHABET.length());
+            char randomChar = ALPHABET.charAt(randomIndex);
+            sb.append(randomChar);
+        }
+        return sb.toString();
+    }
+}
