@@ -99,14 +99,16 @@ public class EcomRoomServiceImpl implements IEcomRoomService {
     }
 
     @Override
-    public void deleteUpdateBackupAndRestore(Long id) {
+    public void deleteUpdateBackupAndRestoreRoom(Long id) {
         EcomRoom ecomRoom = this.iEcomRoomRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Room not found with id: " + id));;
         ecomRoom.setDeleted(LocalDateTime.now());
         this.iEcomRoomRepository.save(ecomRoom);
     }
 
     @Override
-    public void deleteDrop(Long id) {
+    public void deleteDropRoom(Long id) {
         this.iEcomRoomRepository.deleteById(id);
     }
+
+
 }

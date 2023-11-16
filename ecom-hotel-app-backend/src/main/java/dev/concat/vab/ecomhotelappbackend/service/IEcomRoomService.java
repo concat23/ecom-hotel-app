@@ -1,7 +1,6 @@
 package dev.concat.vab.ecomhotelappbackend.service;
 
 import dev.concat.vab.ecomhotelappbackend.model.EcomRoom;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
@@ -16,7 +15,7 @@ public interface IEcomRoomService {
 
     byte[] getRoomPhotoByRoomId(Long id);
 
-    void deleteUpdateBackupAndRestore(Long id);
+    void deleteUpdateBackupAndRestoreRoom(Long id);
 
-    void deleteDrop(Long id);
+    void deleteDropRoom(Long id);
 }

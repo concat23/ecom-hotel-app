@@ -8,6 +8,7 @@ import dev.concat.vab.ecomhotelappbackend.response.EcomRoomResponse;
 import dev.concat.vab.ecomhotelappbackend.service.IEcomBookingService;
 import dev.concat.vab.ecomhotelappbackend.service.IEcomRoomService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -72,16 +73,22 @@ public class EcomRoomController {
 
 
     @DeleteMapping("/backup-restore/{id}")
-    public ResponseEntity<String> deleteUpdateBackupAndRestore(@PathVariable Long id) {
-        this.iEcomRoomService.deleteUpdateBackupAndRestore(id);
+    public ResponseEntity<String> deleteUpdateBackupAndRestore(@PathVariable("id") Long id) {
+        this.iEcomRoomService.deleteUpdateBackupAndRestoreRoom(id);
         return ResponseEntity.ok("Entity backup/restore successfully");
     }
 
 
     @DeleteMapping("/drop/{id}")
-    public ResponseEntity<String> deleteDrop(@PathVariable Long id) {
-        this.iEcomRoomService.deleteDrop(id);
+    public ResponseEntity<String> deleteDrop(@PathVariable("id") Long id) {
+        this.iEcomRoomService.deleteDropRoom(id);
         return ResponseEntity.ok("Entity deleted successfully");
+    }
+
+    @DeleteMapping(path="/delete/room/{id}")
+    public ResponseEntity<Void> deleteRoom(@PathVariable("id") Long id){
+        this.iEcomRoomService.deleteDropRoom(id);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
     private List<EcomRoomResponse> convertToResponseList(List<EcomRoom> rooms) {
         return rooms.stream()
