@@ -13,4 +13,6 @@ public interface IEcomRoomService {
     List<EcomRoom> roomList();
 
     List<String> getAllRoomTypes();
+
+    byte[] getRoomPhotoByRoomId(Long id);
 }

@@ -1,5 +1,6 @@
 package dev.concat.vab.ecomhotelappbackend.service.implementation;
 
+import dev.concat.vab.ecomhotelappbackend.exception.ResourceNotFoundException;
 import dev.concat.vab.ecomhotelappbackend.model.EcomRoom;
 import dev.concat.vab.ecomhotelappbackend.repository.IEcomRoomRepository;
 import dev.concat.vab.ecomhotelappbackend.service.IEcomRoomService;
@@ -20,6 +21,7 @@ import java.sql.Blob;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 
 @Service
@@ -71,5 +73,27 @@ public class EcomRoomServiceImpl implements IEcomRoomService {
     @Override
     public List<String> getAllRoomTypes() {
         return this.iEcomRoomRepository.findDistinctRoomTypes();
+    }
+
+
+
+    @Override
+    public byte[] getRoomPhotoByRoomId(Long id) {
+        Optional<EcomRoom> theRoom = this.iEcomRoomRepository.findById(id);
+
+        if(theRoom.isEmpty()){
+            throw new ResourceNotFoundException("Sorry , Room not found!");
+        }
+
+        Blob photoBlob = theRoom.get().getPhoto();
+        if(photoBlob != null){
+            try {
+                return photoBlob.getBytes(1, (int)photoBlob.length());
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        return null;
     }
 }
