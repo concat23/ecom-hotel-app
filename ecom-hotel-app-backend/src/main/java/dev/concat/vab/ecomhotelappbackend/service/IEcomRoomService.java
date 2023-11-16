@@ -15,4 +15,8 @@ public interface IEcomRoomService {
     List<String> getAllRoomTypes();
 
     byte[] getRoomPhotoByRoomId(Long id);
+
+    void deleteUpdateBackupAndRestore(Long id);
+
+    void deleteDrop(Long id);
 }

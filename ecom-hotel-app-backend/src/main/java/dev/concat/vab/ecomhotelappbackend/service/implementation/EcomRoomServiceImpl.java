@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.Blob;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -95,5 +96,17 @@ public class EcomRoomServiceImpl implements IEcomRoomService {
         }
 
         return null;
+    }
+
+    @Override
+    public void deleteUpdateBackupAndRestore(Long id) {
+        EcomRoom ecomRoom = this.iEcomRoomRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Room not found with id: " + id));;
+        ecomRoom.setDeleted(LocalDateTime.now());
+        this.iEcomRoomRepository.save(ecomRoom);
+    }
+
+    @Override
+    public void deleteDrop(Long id) {
+        this.iEcomRoomRepository.deleteById(id);
     }
 }

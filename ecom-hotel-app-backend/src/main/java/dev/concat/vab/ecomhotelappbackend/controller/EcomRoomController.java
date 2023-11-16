@@ -70,6 +70,19 @@ public class EcomRoomController {
         return ResponseEntity.ok(roomsRes);
     }
 
+
+    @DeleteMapping("/backup-restore/{id}")
+    public ResponseEntity<String> deleteUpdateBackupAndRestore(@PathVariable Long id) {
+        this.iEcomRoomService.deleteUpdateBackupAndRestore(id);
+        return ResponseEntity.ok("Entity backup/restore successfully");
+    }
+
+
+    @DeleteMapping("/drop/{id}")
+    public ResponseEntity<String> deleteDrop(@PathVariable Long id) {
+        this.iEcomRoomService.deleteDrop(id);
+        return ResponseEntity.ok("Entity deleted successfully");
+    }
     private List<EcomRoomResponse> convertToResponseList(List<EcomRoom> rooms) {
         return rooms.stream()
                 .map(EcomRoomResponse::fromEcomRoom)

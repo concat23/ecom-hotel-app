@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.sql.Blob;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 @Entity
@@ -27,6 +28,7 @@ public class EcomRoom {
     private String roomType;
     private BigDecimal roomPrice;
     private boolean isBooked = false;
+    private LocalDateTime deleted;
 
     @Lob
     private Blob photo;
