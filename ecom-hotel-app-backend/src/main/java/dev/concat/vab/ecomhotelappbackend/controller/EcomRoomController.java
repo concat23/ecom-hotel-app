@@ -10,6 +10,7 @@ import dev.concat.vab.ecomhotelappbackend.service.IEcomRoomService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -72,10 +73,10 @@ public class EcomRoomController {
     }
 
 
-    @DeleteMapping("/backup-restore/{id}")
-    public ResponseEntity<String> deleteUpdateBackupAndRestore(@PathVariable("id") Long id) {
+    @DeleteMapping("/backup-restore/room/{id}")
+    public ResponseEntity<Void> deleteUpdateBackupAndRestore(@PathVariable("id") Long id) {
         this.iEcomRoomService.deleteUpdateBackupAndRestoreRoom(id);
-        return ResponseEntity.ok("Entity backup/restore successfully");
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
 

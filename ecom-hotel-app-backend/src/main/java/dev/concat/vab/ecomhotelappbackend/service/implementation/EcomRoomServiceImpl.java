@@ -4,15 +4,16 @@ import dev.concat.vab.ecomhotelappbackend.exception.ResourceNotFoundException;
 import dev.concat.vab.ecomhotelappbackend.model.EcomRoom;
 import dev.concat.vab.ecomhotelappbackend.repository.IEcomRoomRepository;
 import dev.concat.vab.ecomhotelappbackend.service.IEcomRoomService;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
+import dev.concat.vab.ecomhotelappbackend.utils.CustomOptional;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import javax.sql.rowset.serial.SerialBlob;
 import javax.sql.rowset.serial.SerialException;
 import java.io.IOException;
@@ -29,8 +30,6 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class EcomRoomServiceImpl implements IEcomRoomService {
 
-    @PersistenceContext
-    private EntityManager entityManager;
     private static final Logger log = LoggerFactory.getLogger(EcomRoomServiceImpl.class);
 
     private final IEcomRoomRepository iEcomRoomRepository;
@@ -80,8 +79,7 @@ public class EcomRoomServiceImpl implements IEcomRoomService {
 
     @Override
     public byte[] getRoomPhotoByRoomId(Long id) {
-        Optional<EcomRoom> theRoom = this.iEcomRoomRepository.findById(id);
-
+        CustomOptional<EcomRoom> theRoom = CustomOptional.ofNullable(this.iEcomRoomRepository.findById(id).orElse(null));
         if(theRoom.isEmpty()){
             throw new ResourceNotFoundException("Sorry , Room not found!");
         }

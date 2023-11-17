@@ -1,19 +1,21 @@
 package dev.concat.vab.ecomhotelappbackend.model;
 
 import dev.concat.vab.ecomhotelappbackend.utils.RandomStringUtils;
-import jakarta.persistence.*;
+
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.persistence.*;
 import java.math.BigDecimal;
 import java.sql.Blob;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+@Data
 @Entity
 @Getter
 @Setter
