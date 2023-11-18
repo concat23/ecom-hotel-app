@@ -1,33 +1,42 @@
 package dev.concat.vab.ecomhotelappbackend.controller;
 
 import dev.concat.vab.ecomhotelappbackend.exception.PhotoRetrievalException;
+import dev.concat.vab.ecomhotelappbackend.exception.ResourceNotFoundException;
 import dev.concat.vab.ecomhotelappbackend.model.EcomBookedRoom;
 import dev.concat.vab.ecomhotelappbackend.model.EcomRoom;
 import dev.concat.vab.ecomhotelappbackend.response.EcomBookingResponse;
 import dev.concat.vab.ecomhotelappbackend.response.EcomRoomResponse;
+import dev.concat.vab.ecomhotelappbackend.response.HttpResponse;
 import dev.concat.vab.ecomhotelappbackend.service.IEcomBookingService;
 import dev.concat.vab.ecomhotelappbackend.service.IEcomRoomService;
+import dev.concat.vab.ecomhotelappbackend.utils.CustomOptional;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import javax.sql.rowset.serial.SerialBlob;
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.net.URI;
 import java.sql.Blob;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import static java.time.LocalTime.now;
 
 @RequiredArgsConstructor
 @RestController
 @RequestMapping(path = "/api/rooms")
 @CrossOrigin(origins = "http://localhost:5173")
 public class EcomRoomController {
-
+    private static final Logger log = LoggerFactory.getLogger(EcomRoomController.class);
     private final IEcomRoomService iEcomRoomService;
     private final IEcomBookingService iEcomBookingService;
 
@@ -73,6 +82,57 @@ public class EcomRoomController {
     }
 
 
+    @PutMapping(path="/update/{id}")
+    public ResponseEntity<EcomRoomResponse> updateRoom(@PathVariable("id") Long roomId,
+                                                   @RequestParam(required = false) String roomType,
+                                                   @RequestParam(required = false) BigDecimal roomPrice,
+                                                   @RequestParam(required = false) MultipartFile photo) throws SQLException, IOException {
+
+        byte[] photoBytes = photo != null && !photo.isEmpty() ?
+                photo.getBytes() : this.iEcomRoomService.getRoomPhotoByRoomId(roomId);
+        Blob photoBlob = photoBytes != null && photoBytes.length > 0 ? new SerialBlob(photoBytes) : null;
+
+        EcomRoom theRoom = this.iEcomRoomService.updateRoom(roomId, roomType, roomPrice, photoBytes);
+        theRoom.setPhoto(photoBlob);
+
+//        Map<String, Object> map = new HashMap<>();
+//        map.put("id", String.valueOf(roomId));
+//        map.put("roomType", roomType);
+//        map.put("roomPrice", roomPrice);
+//        map.put("photo", (photoBlob != null) ? Base64.getEncoder().encodeToString(photoBytes) : null);
+//
+//        HttpResponse response = HttpResponse.builder()
+//                .message("Updated room")
+//                .developerMessage("Handing the room update feature")
+//                .path("/update/"+roomId)
+//                .status(HttpStatus.OK)
+//                .statusCode(HttpStatus.OK.value())
+//                .requestMethod("PUT")
+//                .timeStamp(now().toString())
+//                .data(map)
+//                .build();
+//        log.info("updateRoom:method > response:variable : "+response );
+
+//        return ResponseEntity.created(getUri()).body(response);
+
+    EcomRoomResponse roomResponse = getEcomRoomResponse(theRoom);
+
+    return ResponseEntity.ok(roomResponse);
+
+    }
+
+    @GetMapping(path = "/room/{id}")
+    public ResponseEntity<Optional<EcomRoomResponse>> getEcomRoomById(@PathVariable("id") Long roomId){
+       Optional<EcomRoom> theRoom = this.iEcomRoomService.getEcomRoomId(roomId);
+        log.info("getEcomRoomById: " + theRoom);
+
+        return theRoom.map(room -> {
+            EcomRoomResponse ecomRoomResponse = getEcomRoomResponse(room);
+            return ResponseEntity.ok(Optional.of(ecomRoomResponse));
+        }).orElseThrow(() -> new ResourceNotFoundException("Room not found"));
+    }
+
+
     @DeleteMapping("/backup-restore/room/{id}")
     public ResponseEntity<Void> deleteUpdateBackupAndRestore(@PathVariable("id") Long id) {
         this.iEcomRoomService.deleteUpdateBackupAndRestoreRoom(id);
@@ -91,6 +151,7 @@ public class EcomRoomController {
         this.iEcomRoomService.deleteDropRoom(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
+
     private List<EcomRoomResponse> convertToResponseList(List<EcomRoom> rooms) {
         return rooms.stream()
                 .map(EcomRoomResponse::fromEcomRoom)
@@ -130,5 +191,9 @@ public class EcomRoomController {
 
     private List<EcomBookedRoom> getAllBookingsByRoomId(Long id){
         return this.iEcomBookingService.getAllBookingsByRoomId(id);
+    }
+
+    private URI getUri() {
+        return URI.create(ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/rooms/room/<id>").toUriString());
     }
 }

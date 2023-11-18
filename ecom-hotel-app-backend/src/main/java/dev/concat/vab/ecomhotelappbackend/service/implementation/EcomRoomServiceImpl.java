@@ -1,5 +1,6 @@
 package dev.concat.vab.ecomhotelappbackend.service.implementation;
 
+import dev.concat.vab.ecomhotelappbackend.exception.InternalServerException;
 import dev.concat.vab.ecomhotelappbackend.exception.ResourceNotFoundException;
 import dev.concat.vab.ecomhotelappbackend.model.EcomRoom;
 import dev.concat.vab.ecomhotelappbackend.repository.IEcomRoomRepository;
@@ -94,6 +95,30 @@ public class EcomRoomServiceImpl implements IEcomRoomService {
         }
 
         return null;
+    }
+
+    @Override
+    public EcomRoom updateRoom(Long roomId, String roomType, BigDecimal roomPrice, byte[] photoBytes) {
+        EcomRoom room = this.iEcomRoomRepository.findById(roomId).orElseThrow(() -> new ResourceNotFoundException(" Room not found !"));
+        if(roomType != null){
+            room.setRoomType(roomType);
+        }
+        if(roomPrice != null){
+            room.setRoomPrice(roomPrice);
+        }
+        if(photoBytes != null && photoBytes.length > 0){
+            try {
+                room.setPhoto(new SerialBlob(photoBytes));
+            }catch (SQLException ex){
+                throw new InternalServerException("Error updating room");
+            }
+        }
+        return this.iEcomRoomRepository.save(room);
+    }
+
+    @Override
+    public Optional<EcomRoom> getEcomRoomId(Long roomId) {
+        return this.iEcomRoomRepository.findById(roomId);
     }
 
     @Override

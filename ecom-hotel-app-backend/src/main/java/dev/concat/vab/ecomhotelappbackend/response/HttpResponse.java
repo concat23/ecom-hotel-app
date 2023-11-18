@@ -1,6 +1,7 @@
 package dev.concat.vab.ecomhotelappbackend.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.experimental.SuperBuilder;
 import org.springframework.http.HttpStatus;
@@ -9,6 +10,7 @@ import java.util.Map;
 
 @Data
 @SuperBuilder
+@AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class HttpResponse {
     protected String timeStamp;
@@ -20,4 +22,5 @@ public class HttpResponse {
     protected String path;
     protected String requestMethod;
     protected Map<?,?> data;
+
 }
