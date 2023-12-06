@@ -5,6 +5,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 public interface IEcomRoomService {
     EcomRoom addNewRoom(MultipartFile photo, String roomType, BigDecimal roomPrice);
@@ -15,7 +16,13 @@ public interface IEcomRoomService {
 
     byte[] getRoomPhotoByRoomId(Long id);
 
+    EcomRoom updateRoom(Long roomId, String roomType, BigDecimal roomPrice, byte[] photoBytes);
+
+    Optional<EcomRoom> getEcomRoomId(Long roomId);
+
     void deleteUpdateBackupAndRestoreRoom(Long id);
 
     void deleteDropRoom(Long id);
+
+
 }

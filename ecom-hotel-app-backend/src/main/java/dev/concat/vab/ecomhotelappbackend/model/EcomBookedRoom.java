@@ -1,12 +1,11 @@
 package dev.concat.vab.ecomhotelappbackend.model;
 
-import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
+import javax.persistence.*;
 import java.time.LocalDate;
+
+@Data
 @Entity
 @Getter
 @Setter
