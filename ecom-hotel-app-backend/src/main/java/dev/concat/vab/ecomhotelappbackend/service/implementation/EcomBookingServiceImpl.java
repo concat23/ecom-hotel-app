@@ -1,7 +1,7 @@
 package dev.concat.vab.ecomhotelappbackend.service.implementation;
 
 import dev.concat.vab.ecomhotelappbackend.exception.InvalidEcomBookingRequestException;
-import dev.concat.vab.ecomhotelappbackend.model.EcomBookedRoom;
+import dev.concat.vab.ecomhotelappbackend.model.EcomBookingRoom;
 import dev.concat.vab.ecomhotelappbackend.model.EcomRoom;
 import dev.concat.vab.ecomhotelappbackend.repository.IEcomBookedRoomRepository;
 import dev.concat.vab.ecomhotelappbackend.repository.IEcomRoomRepository;
@@ -21,7 +21,7 @@ public class EcomBookingServiceImpl implements IEcomBookingService {
     private final IEcomRoomRepository iEcomRoomRepository;
 
     @Override
-    public List<EcomBookedRoom> getAllBookings() {
+    public List<EcomBookingRoom> getAllBookings() {
         log.info("Loading: getAllBookings");
         return  iEcomBookedRoomRepository.findAll();
     }
@@ -34,7 +34,7 @@ public class EcomBookingServiceImpl implements IEcomBookingService {
     }
 
     @Override
-    public String saveBooking(Long id, EcomBookedRoom bookingRequest) {
+    public String saveBooking(Long id, EcomBookingRoom bookingRequest) {
         log.info("Saving ...");
 //        if (bookingRequest.getCheckInDate() == null || bookingRequest.getCheckOutDate() == null) {
 //            throw new InvalidEcomBookingRequestException("Check-in and check-out dates must be specified");
@@ -46,7 +46,7 @@ public class EcomBookingServiceImpl implements IEcomBookingService {
 
 
         EcomRoom room = iEcomRoomRepository.getRoomById(id);
-        List<EcomBookedRoom> existingBookings = room.getBookings();
+        List<EcomBookingRoom> existingBookings = room.getBookings();
 
         boolean roomIsAvailable = roomIsAvailable(bookingRequest,existingBookings);
         if(roomIsAvailable){
@@ -61,19 +61,19 @@ public class EcomBookingServiceImpl implements IEcomBookingService {
     }
 
     @Override
-    public EcomBookedRoom findByBookingConfirmationCode(String confirmationCode) {
+    public EcomBookingRoom findByBookingConfirmationCode(String confirmationCode) {
         log.info("Finding: findByBookingConfirmationCode ...");
         return this.iEcomBookedRoomRepository.findByBookingConfirmationCode(confirmationCode);
     }
 
 
     @Override
-    public List<EcomBookedRoom> getAllBookingsByRoomId(Long id) {
+    public List<EcomBookingRoom> getAllBookingsByRoomId(Long id) {
         log.info("Getting: getAllBookingsByRoomId ...");
         return iEcomBookedRoomRepository.findByRoomId(id);
     }
 
-    private boolean roomIsAvailable(EcomBookedRoom bookingRequest, List<EcomBookedRoom> existingBookings){
+    private boolean roomIsAvailable(EcomBookingRoom bookingRequest, List<EcomBookingRoom> existingBookings){
 
         return existingBookings
                 .stream()

@@ -1,17 +1,17 @@
 package dev.concat.vab.ecomhotelappbackend.service;
 
-import dev.concat.vab.ecomhotelappbackend.model.EcomBookedRoom;
+import dev.concat.vab.ecomhotelappbackend.model.EcomBookingRoom;
 
 import java.util.List;
 
 public interface IEcomBookingService {
 
-    List<EcomBookedRoom> getAllBookings();
-    List<EcomBookedRoom> getAllBookingsByRoomId(Long id);
+    List<EcomBookingRoom> getAllBookings();
+    List<EcomBookingRoom> getAllBookingsByRoomId(Long id);
 
     void cancelBooking(Long id);
 
-    String saveBooking(Long id, EcomBookedRoom bookingRequest);
+    String saveBooking(Long id, EcomBookingRoom bookingRequest);
 
-    EcomBookedRoom findByBookingConfirmationCode(String confirmationCode);
+    EcomBookingRoom findByBookingConfirmationCode(String confirmationCode);
 }

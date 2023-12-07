@@ -2,7 +2,7 @@ package dev.concat.vab.ecomhotelappbackend.controller;
 
 import dev.concat.vab.ecomhotelappbackend.exception.InvalidEcomBookingRequestException;
 import dev.concat.vab.ecomhotelappbackend.exception.ResourceNotFoundException;
-import dev.concat.vab.ecomhotelappbackend.model.EcomBookedRoom;
+import dev.concat.vab.ecomhotelappbackend.model.EcomBookingRoom;
 import dev.concat.vab.ecomhotelappbackend.model.EcomRoom;
 import dev.concat.vab.ecomhotelappbackend.response.EcomBookingResponse;
 import dev.concat.vab.ecomhotelappbackend.response.EcomRoomResponse;
@@ -26,9 +26,9 @@ public class EcomBookingController {
 
     @GetMapping(path = "/all-bookings")
     public ResponseEntity<List<EcomBookingResponse>> getAllBookings(){
-        List<EcomBookedRoom> bookings = iEcomBookingService.getAllBookings();
+        List<EcomBookingRoom> bookings = iEcomBookingService.getAllBookings();
         List<EcomBookingResponse> bookingResponses = new ArrayList<>();
-        for(EcomBookedRoom booking : bookings ){
+        for(EcomBookingRoom booking : bookings ){
             EcomBookingResponse bookingResponse = getBookingResponse(booking);
             bookingResponses.add(bookingResponse);
         }
@@ -38,7 +38,7 @@ public class EcomBookingController {
     @GetMapping(path = "/confirmation/{confirmationCode}")
     public ResponseEntity<?> getBookingByConfirmationCode(@PathVariable String confirmationCode){
         try{
-            EcomBookedRoom booking = iEcomBookingService.findByBookingConfirmationCode(confirmationCode);
+            EcomBookingRoom booking = iEcomBookingService.findByBookingConfirmationCode(confirmationCode);
             EcomBookingResponse bookingResponse = getBookingResponse(booking);
             return ResponseEntity.ok(bookingResponse);
         }catch(ResourceNotFoundException exc){
@@ -47,7 +47,7 @@ public class EcomBookingController {
     }
 
     @PostMapping(path="/room/{id}/booking")
-    public ResponseEntity<?> saveBooking(@PathVariable Long id,@RequestBody EcomBookedRoom bookingRequest){
+    public ResponseEntity<?> saveBooking(@PathVariable Long id,@RequestBody EcomBookingRoom bookingRequest){
         try{
             String confirmationCode = iEcomBookingService.saveBooking(id,bookingRequest);
             return ResponseEntity.ok("Room booked successfully, Your booking confirmation code is: "+confirmationCode);
@@ -61,7 +61,7 @@ public class EcomBookingController {
         iEcomBookingService.cancelBooking(id);
     }
 
-    public EcomBookingResponse getBookingResponse(EcomBookedRoom booking){
+    public EcomBookingResponse getBookingResponse(EcomBookingRoom booking){
         EcomRoom theRoom = iEcomRoomService.getEcomRoomId(booking.getId());
         EcomRoomResponse room = new EcomRoomResponse(
                                     theRoom.getId(),

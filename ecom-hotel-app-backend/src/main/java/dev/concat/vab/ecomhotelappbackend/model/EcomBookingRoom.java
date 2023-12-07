@@ -10,8 +10,8 @@ import java.time.LocalDate;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "ecom_booked_room")
-public class EcomBookedRoom {
+@Table(name = "ecom_booking")
+public class EcomBookingRoom {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

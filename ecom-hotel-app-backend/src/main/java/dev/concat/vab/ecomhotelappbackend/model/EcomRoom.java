@@ -3,7 +3,6 @@ package dev.concat.vab.ecomhotelappbackend.model;
 import dev.concat.vab.ecomhotelappbackend.utils.RandomStringUtils;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import org.slf4j.Logger;
@@ -36,12 +35,12 @@ public class EcomRoom {
     private Blob photo;
 
     @OneToMany(mappedBy = "room",fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private List<EcomBookedRoom> bookings;
+    private List<EcomBookingRoom> bookings;
 
     public EcomRoom(){
         this.bookings = new ArrayList<>();
     }
-    public void addBooking(EcomBookedRoom bookedRoom){
+    public void addBooking(EcomBookingRoom bookedRoom){
         logger.info("Checking: EcomRoom:class > addBooking:method");
         logger.info("Checking: bookings<List>:property is null ?");
         if(bookings == null){

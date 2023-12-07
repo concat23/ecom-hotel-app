@@ -1,6 +1,6 @@
 package dev.concat.vab.ecomhotelappbackend.repository;
 
-import dev.concat.vab.ecomhotelappbackend.model.EcomBookedRoom;
+import dev.concat.vab.ecomhotelappbackend.model.EcomBookingRoom;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -9,10 +9,10 @@ import java.util.List;
 
 @Repository
 @Transactional
-public interface IEcomBookedRoomRepository extends JpaRepository<EcomBookedRoom,Long> {
+public interface IEcomBookedRoomRepository extends JpaRepository<EcomBookingRoom,Long> {
 
-    EcomBookedRoom findByBookingConfirmationCode(String confirmationCode);
+    EcomBookingRoom findByBookingConfirmationCode(String confirmationCode);
 
-    List<EcomBookedRoom> findByRoomId(Long id);
+    List<EcomBookingRoom> findByRoomId(Long id);
 
 }

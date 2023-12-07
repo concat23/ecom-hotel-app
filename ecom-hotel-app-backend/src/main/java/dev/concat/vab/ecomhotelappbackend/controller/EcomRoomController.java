@@ -2,20 +2,17 @@ package dev.concat.vab.ecomhotelappbackend.controller;
 
 import dev.concat.vab.ecomhotelappbackend.exception.PhotoRetrievalException;
 import dev.concat.vab.ecomhotelappbackend.exception.ResourceNotFoundException;
-import dev.concat.vab.ecomhotelappbackend.model.EcomBookedRoom;
+import dev.concat.vab.ecomhotelappbackend.model.EcomBookingRoom;
 import dev.concat.vab.ecomhotelappbackend.model.EcomRoom;
 import dev.concat.vab.ecomhotelappbackend.response.EcomBookingResponse;
 import dev.concat.vab.ecomhotelappbackend.response.EcomRoomResponse;
-import dev.concat.vab.ecomhotelappbackend.response.HttpResponse;
 import dev.concat.vab.ecomhotelappbackend.service.IEcomBookingService;
 import dev.concat.vab.ecomhotelappbackend.service.IEcomRoomService;
-import dev.concat.vab.ecomhotelappbackend.utils.CustomOptional;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -164,7 +161,7 @@ public class EcomRoomController {
     }
 
     private EcomRoomResponse getEcomRoomResponse(EcomRoom room){
-        List<EcomBookedRoom> bookings = getAllBookingsByRoomId(room.getId());
+        List<EcomBookingRoom> bookings = getAllBookingsByRoomId(room.getId());
         List<EcomBookingResponse> bookingInfoRes = new ArrayList<>();
 
         if (bookings != null) {
@@ -194,7 +191,7 @@ public class EcomRoomController {
 
     }
 
-    private List<EcomBookedRoom> getAllBookingsByRoomId(Long id){
+    private List<EcomBookingRoom> getAllBookingsByRoomId(Long id){
         return this.iEcomBookingService.getAllBookingsByRoomId(id);
     }
 
