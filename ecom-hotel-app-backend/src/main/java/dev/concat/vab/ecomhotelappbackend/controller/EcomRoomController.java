@@ -122,15 +122,20 @@ public class EcomRoomController {
     }
 
     @GetMapping(path = "/room/{id}")
-    public ResponseEntity<Optional<EcomRoomResponse>> getEcomRoomById(@PathVariable("id") Long roomId){
-       Optional<EcomRoom> theRoom = this.iEcomRoomService.getEcomRoomId(roomId);
+    public ResponseEntity<EcomRoomResponse> getEcomRoomById(@PathVariable("id") Long id) {
+        EcomRoom theRoom = this.iEcomRoomService.getEcomRoomId(id);
+
+        if (theRoom == null) {
+            throw new ResourceNotFoundException("Room not found for id: " + id);
+        }
+
         log.info("getEcomRoomById: " + theRoom);
 
-        return theRoom.map(room -> {
-            EcomRoomResponse ecomRoomResponse = getEcomRoomResponse(room);
-            return ResponseEntity.ok(Optional.of(ecomRoomResponse));
-        }).orElseThrow(() -> new ResourceNotFoundException("Room not found"));
+        EcomRoomResponse ecomRoomResponse = getEcomRoomResponse(theRoom);
+        return ResponseEntity.ok(ecomRoomResponse);
     }
+
+
 
 
     @DeleteMapping("/backup-restore/room/{id}")
@@ -165,7 +170,7 @@ public class EcomRoomController {
         if (bookings != null) {
             bookingInfoRes = bookings.stream()
                     .map(booking -> new EcomBookingResponse(
-                            booking.getBookingId(),
+                            booking.getId(),
                             booking.getCheckInDate(),
                             booking.getCheckOutDate(),
                             booking.getBookingConfirmationCode()))

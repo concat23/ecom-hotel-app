@@ -18,7 +18,7 @@ public interface IEcomRoomService {
 
     EcomRoom updateRoom(Long roomId, String roomType, BigDecimal roomPrice, byte[] photoBytes);
 
-    Optional<EcomRoom> getEcomRoomId(Long roomId);
+    EcomRoom getEcomRoomId(Long roomId);
 
     void deleteUpdateBackupAndRestoreRoom(Long id);
 

@@ -13,7 +13,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class EcomBookingResponse {
 
-    private Long bookingId;
+    private Long id;
 
     private LocalDate checkInDate;
 
@@ -35,7 +35,7 @@ public class EcomBookingResponse {
 
 
     public EcomBookingResponse(Long bookingId, LocalDate checkInDate, LocalDate checkOutDate, String bookingConfirmationCode) {
-        this.bookingId = bookingId;
+        this.id = bookingId;
         this.checkInDate = checkInDate;
         this.checkOutDate = checkOutDate;
         this.bookingConfirmationCode = bookingConfirmationCode;
