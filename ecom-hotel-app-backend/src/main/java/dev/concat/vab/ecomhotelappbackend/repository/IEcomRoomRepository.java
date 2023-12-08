@@ -15,5 +15,6 @@ public interface IEcomRoomRepository extends JpaRepository<EcomRoom, Long> {
     @Query("SELECT DISTINCT er.roomType FROM EcomRoom er")
     List<String> findDistinctRoomTypes();
 
+    @Query("SELECT r FROM EcomRoom r WHERE r.id = :id")
     EcomRoom getRoomById(Long id);
 }

@@ -3,6 +3,7 @@ package dev.concat.vab.ecomhotelappbackend.model;
 import dev.concat.vab.ecomhotelappbackend.utils.RandomStringUtils;
 
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import org.slf4j.Logger;
