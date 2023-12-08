@@ -2,20 +2,17 @@ package dev.concat.vab.ecomhotelappbackend.controller;
 
 import dev.concat.vab.ecomhotelappbackend.exception.PhotoRetrievalException;
 import dev.concat.vab.ecomhotelappbackend.exception.ResourceNotFoundException;
-import dev.concat.vab.ecomhotelappbackend.model.EcomBookedRoom;
+import dev.concat.vab.ecomhotelappbackend.model.EcomBookingRoom;
 import dev.concat.vab.ecomhotelappbackend.model.EcomRoom;
 import dev.concat.vab.ecomhotelappbackend.response.EcomBookingResponse;
 import dev.concat.vab.ecomhotelappbackend.response.EcomRoomResponse;
-import dev.concat.vab.ecomhotelappbackend.response.HttpResponse;
 import dev.concat.vab.ecomhotelappbackend.service.IEcomBookingService;
 import dev.concat.vab.ecomhotelappbackend.service.IEcomRoomService;
-import dev.concat.vab.ecomhotelappbackend.utils.CustomOptional;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -122,15 +119,20 @@ public class EcomRoomController {
     }
 
     @GetMapping(path = "/room/{id}")
-    public ResponseEntity<Optional<EcomRoomResponse>> getEcomRoomById(@PathVariable("id") Long roomId){
-       Optional<EcomRoom> theRoom = this.iEcomRoomService.getEcomRoomId(roomId);
+    public ResponseEntity<EcomRoomResponse> getEcomRoomById(@PathVariable("id") Long id) {
+        EcomRoom theRoom = this.iEcomRoomService.getEcomRoomId(id);
+
+        if (theRoom == null) {
+            throw new ResourceNotFoundException("Room not found for id: " + id);
+        }
+
         log.info("getEcomRoomById: " + theRoom);
 
-        return theRoom.map(room -> {
-            EcomRoomResponse ecomRoomResponse = getEcomRoomResponse(room);
-            return ResponseEntity.ok(Optional.of(ecomRoomResponse));
-        }).orElseThrow(() -> new ResourceNotFoundException("Room not found"));
+        EcomRoomResponse ecomRoomResponse = getEcomRoomResponse(theRoom);
+        return ResponseEntity.ok(ecomRoomResponse);
     }
+
+
 
 
     @DeleteMapping("/backup-restore/room/{id}")
@@ -159,13 +161,13 @@ public class EcomRoomController {
     }
 
     private EcomRoomResponse getEcomRoomResponse(EcomRoom room){
-        List<EcomBookedRoom> bookings = getAllBookingsByRoomId(room.getId());
+        List<EcomBookingRoom> bookings = getAllBookingsByRoomId(room.getId());
         List<EcomBookingResponse> bookingInfoRes = new ArrayList<>();
 
         if (bookings != null) {
             bookingInfoRes = bookings.stream()
                     .map(booking -> new EcomBookingResponse(
-                            booking.getBookingId(),
+                            booking.getId(),
                             booking.getCheckInDate(),
                             booking.getCheckOutDate(),
                             booking.getBookingConfirmationCode()))
@@ -189,7 +191,7 @@ public class EcomRoomController {
 
     }
 
-    private List<EcomBookedRoom> getAllBookingsByRoomId(Long id){
+    private List<EcomBookingRoom> getAllBookingsByRoomId(Long id){
         return this.iEcomBookingService.getAllBookingsByRoomId(id);
     }
 

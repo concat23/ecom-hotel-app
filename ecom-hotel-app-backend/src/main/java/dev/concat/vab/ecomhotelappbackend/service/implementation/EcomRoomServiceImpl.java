@@ -117,8 +117,9 @@ public class EcomRoomServiceImpl implements IEcomRoomService {
     }
 
     @Override
-    public Optional<EcomRoom> getEcomRoomId(Long roomId) {
-        return this.iEcomRoomRepository.findById(roomId);
+    public EcomRoom getEcomRoomId(Long id) {
+        log.info("Room ID: {}",id);
+        return this.iEcomRoomRepository.getRoomById(id);
     }
 
     @Override

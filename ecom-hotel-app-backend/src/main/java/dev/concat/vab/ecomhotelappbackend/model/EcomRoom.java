@@ -15,7 +15,7 @@ import java.sql.Blob;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-@Data
+
 @Entity
 @Getter
 @Setter
@@ -36,12 +36,12 @@ public class EcomRoom {
     private Blob photo;
 
     @OneToMany(mappedBy = "room",fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private List<EcomBookedRoom> bookings;
+    private List<EcomBookingRoom> bookings;
 
     public EcomRoom(){
         this.bookings = new ArrayList<>();
     }
-    public void addBooking(EcomBookedRoom bookedRoom){
+    public void addBooking(EcomBookingRoom bookedRoom){
         logger.info("Checking: EcomRoom:class > addBooking:method");
         logger.info("Checking: bookings<List>:property is null ?");
         if(bookings == null){

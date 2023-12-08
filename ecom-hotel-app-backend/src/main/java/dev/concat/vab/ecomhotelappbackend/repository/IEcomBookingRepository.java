@@ -1,6 +1,6 @@
 package dev.concat.vab.ecomhotelappbackend.repository;
 
-import dev.concat.vab.ecomhotelappbackend.model.EcomRoom;
+import dev.concat.vab.ecomhotelappbackend.model.EcomBookingRoom;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -10,11 +10,11 @@ import java.util.List;
 
 @Repository
 @Transactional
-public interface IEcomRoomRepository extends JpaRepository<EcomRoom, Long> {
+public interface IEcomBookingRepository extends JpaRepository<EcomBookingRoom,Long> {
 
-    @Query("SELECT DISTINCT er.roomType FROM EcomRoom er")
-    List<String> findDistinctRoomTypes();
+    EcomBookingRoom findByBookingConfirmationCode(String confirmationCode);
 
-    @Query("SELECT r FROM EcomRoom r WHERE r.id = :id")
-    EcomRoom getRoomById(Long id);
+    @Query("SELECT b FROM EcomBookingRoom b WHERE b.id = :id")
+    List<EcomBookingRoom> findByBookingId(Long id);
+
 }
