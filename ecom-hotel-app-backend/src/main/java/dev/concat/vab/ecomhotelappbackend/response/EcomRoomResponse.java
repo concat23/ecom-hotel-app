@@ -12,6 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 public class EcomRoomResponse {
     private Long id;
+    private String roomCode;
     private String roomType;
     private BigDecimal roomPrice;
 
@@ -21,14 +22,16 @@ public class EcomRoomResponse {
 
     private List<EcomBookingResponse> bookings;
 
-    public EcomRoomResponse(Long id, String roomType, BigDecimal roomPrice) {
+    public EcomRoomResponse(Long id, String roomCode,String roomType, BigDecimal roomPrice) {
         this.id = id;
+        this.roomCode = roomCode;
         this.roomType = roomType;
         this.roomPrice = roomPrice;
     }
 
-    public EcomRoomResponse(Long id, String roomType, BigDecimal roomPrice, boolean idBooked, byte[] photoBytes, List<EcomBookingResponse> bookings) {
+    public EcomRoomResponse(Long id, String roomCode,String roomType, BigDecimal roomPrice, boolean idBooked, byte[] photoBytes, List<EcomBookingResponse> bookings) {
         this.id = id;
+        this.roomCode = roomCode;
         this.roomType = roomType;
         this.roomPrice = roomPrice;
         this.idBooked = idBooked;
@@ -40,6 +43,7 @@ public class EcomRoomResponse {
     public static EcomRoomResponse fromEcomRoom(EcomRoom ecomRoom) {
         EcomRoomResponse response = new EcomRoomResponse();
         response.setId(ecomRoom.getId());
+        response.setRoomCode(ecomRoom.getRoomCode());
         response.setRoomType(ecomRoom.getRoomType());
         response.setRoomPrice(ecomRoom.getRoomPrice());
         // set other fields as needed

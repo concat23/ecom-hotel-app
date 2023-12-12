@@ -26,7 +26,7 @@ public class EcomRoom {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
+    private String roomCode;
     private String roomType;
     private BigDecimal roomPrice;
     private boolean isBooked = false;

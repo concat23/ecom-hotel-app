@@ -65,6 +65,7 @@ public class EcomBookingController {
         EcomRoom theRoom = iEcomRoomService.getEcomRoomId(booking.getId());
         EcomRoomResponse room = new EcomRoomResponse(
                                     theRoom.getId(),
+                                    theRoom.getRoomCode(),
                                     theRoom.getRoomType(),
                                     theRoom.getRoomPrice()
                                 );

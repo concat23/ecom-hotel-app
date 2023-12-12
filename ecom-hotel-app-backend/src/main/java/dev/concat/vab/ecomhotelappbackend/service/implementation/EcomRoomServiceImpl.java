@@ -35,7 +35,7 @@ public class EcomRoomServiceImpl implements IEcomRoomService {
 
     private final IEcomRoomRepository iEcomRoomRepository;
     @Override
-    public EcomRoom addNewRoom(MultipartFile photo, String roomType, BigDecimal roomPrice) {
+    public EcomRoom addNewRoom(MultipartFile photo,String roomCode ,String roomType, BigDecimal roomPrice) {
 
         try {
 
@@ -48,7 +48,9 @@ public class EcomRoomServiceImpl implements IEcomRoomService {
                 Blob photoBlob = new SerialBlob(photoBytes);
                 room.setPhoto(photoBlob);
             }
+            room.setRoomCode(roomCode);
             room.setRoomType(roomType);
+            room.setBooked(false);
             room.setRoomPrice(roomPrice);
             EcomRoom result = iEcomRoomRepository.save(room);
             log.info("Added success. Room ID: {}",result.getId());
@@ -98,8 +100,11 @@ public class EcomRoomServiceImpl implements IEcomRoomService {
     }
 
     @Override
-    public EcomRoom updateRoom(Long roomId, String roomType, BigDecimal roomPrice, byte[] photoBytes) {
+    public EcomRoom updateRoom(Long roomId, String roomCode, String roomType, BigDecimal roomPrice, byte[] photoBytes) {
         EcomRoom room = this.iEcomRoomRepository.findById(roomId).orElseThrow(() -> new ResourceNotFoundException(" Room not found !"));
+        if(roomCode != null){
+            room.setRoomCode(roomCode);
+        }
         if(roomType != null){
             room.setRoomType(roomType);
         }

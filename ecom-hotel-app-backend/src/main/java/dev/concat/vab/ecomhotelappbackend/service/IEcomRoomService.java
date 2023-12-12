@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface IEcomRoomService {
-    EcomRoom addNewRoom(MultipartFile photo, String roomType, BigDecimal roomPrice);
+    EcomRoom addNewRoom(MultipartFile photo,String roomCode ,String roomType, BigDecimal roomPrice);
 
     List<EcomRoom> roomList();
 
@@ -16,7 +16,7 @@ public interface IEcomRoomService {
 
     byte[] getRoomPhotoByRoomId(Long id);
 
-    EcomRoom updateRoom(Long roomId, String roomType, BigDecimal roomPrice, byte[] photoBytes);
+    EcomRoom updateRoom(Long roomId, String roomCode ,String roomType, BigDecimal roomPrice, byte[] photoBytes);
 
     EcomRoom getEcomRoomId(Long roomId);
 

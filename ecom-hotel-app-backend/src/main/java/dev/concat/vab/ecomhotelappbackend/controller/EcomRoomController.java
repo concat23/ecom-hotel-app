@@ -51,11 +51,12 @@ public class EcomRoomController {
     @PostMapping(path = "/add/new-room")
     public ResponseEntity<EcomRoomResponse> addNewRoom(
             @RequestParam("photo") MultipartFile photo,
+            @RequestParam("roomCode") String roomCode,
             @RequestParam("roomType") String roomType,
             @RequestParam("roomPrice") BigDecimal roomPrice){
 
-        EcomRoom savedRoom = this.iEcomRoomService.addNewRoom(photo,roomType,roomPrice);
-        EcomRoomResponse roomResponse = new EcomRoomResponse(savedRoom.getId(), savedRoom.getRoomType(),savedRoom.getRoomPrice());
+        EcomRoom savedRoom = this.iEcomRoomService.addNewRoom(photo,roomCode,roomType,roomPrice);
+        EcomRoomResponse roomResponse = new EcomRoomResponse(savedRoom.getId(),savedRoom.getRoomCode(),savedRoom.getRoomType(),savedRoom.getRoomPrice());
         return ResponseEntity.ok(roomResponse);
     }
 
@@ -81,6 +82,7 @@ public class EcomRoomController {
 
     @PutMapping(path="/update/{id}")
     public ResponseEntity<EcomRoomResponse> updateRoom(@PathVariable("id") Long roomId,
+                                                   @RequestParam(required = false) String roomCode,
                                                    @RequestParam(required = false) String roomType,
                                                    @RequestParam(required = false) BigDecimal roomPrice,
                                                    @RequestParam(required = false) MultipartFile photo) throws SQLException, IOException {
@@ -89,7 +91,7 @@ public class EcomRoomController {
                 photo.getBytes() : this.iEcomRoomService.getRoomPhotoByRoomId(roomId);
         Blob photoBlob = photoBytes != null && photoBytes.length > 0 ? new SerialBlob(photoBytes) : null;
 
-        EcomRoom theRoom = this.iEcomRoomService.updateRoom(roomId, roomType, roomPrice, photoBytes);
+        EcomRoom theRoom = this.iEcomRoomService.updateRoom(roomId, roomCode,roomType, roomPrice, photoBytes);
         theRoom.setPhoto(photoBlob);
 
 //        Map<String, Object> map = new HashMap<>();
@@ -187,7 +189,7 @@ public class EcomRoomController {
                  }
             }
 
-            return new EcomRoomResponse(room.getId(),room.getRoomType(),room.getRoomPrice(),room.isBooked(), photoBytes,bookingInfoRes);
+            return new EcomRoomResponse(room.getId(),room.getRoomCode(),room.getRoomType(),room.getRoomPrice(),room.isBooked(), photoBytes,bookingInfoRes);
 
     }
 
