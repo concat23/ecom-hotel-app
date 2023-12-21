@@ -10,7 +10,6 @@ import java.util.Map;
 
 @Data
 @SuperBuilder
-@AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class HttpResponse {
     protected String timeStamp;
@@ -22,5 +21,26 @@ public class HttpResponse {
     protected String path;
     protected String requestMethod;
     protected Map<?,?> data;
+
+
+    public HttpResponse(int statusCode, HttpStatus status, String message, String requestMethod) {
+        this.statusCode = statusCode;
+        this.status = status;
+        this.message = message;
+        this.requestMethod = requestMethod;
+    }
+
+    public HttpResponse(String timeStamp, int statusCode, HttpStatus status, String reason, String message, String developerMessage, String path, String requestMethod, Map<?, ?> data) {
+        this.timeStamp = timeStamp;
+        this.statusCode = statusCode;
+        this.status = status;
+        this.reason = reason;
+        this.message = message;
+        this.developerMessage = developerMessage;
+        this.path = path;
+        this.requestMethod = requestMethod;
+        this.data = data;
+    }
+
 
 }
