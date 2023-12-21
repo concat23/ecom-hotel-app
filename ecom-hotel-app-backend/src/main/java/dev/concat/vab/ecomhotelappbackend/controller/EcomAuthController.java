@@ -6,6 +6,7 @@ import dev.concat.vab.ecomhotelappbackend.model.EcomUserPrincipal;
 import dev.concat.vab.ecomhotelappbackend.provider.JWTTokenProvider;
 import dev.concat.vab.ecomhotelappbackend.response.HttpResponse;
 import dev.concat.vab.ecomhotelappbackend.service.IEcomUserService;
+import io.swagger.annotations.Api;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -57,6 +58,19 @@ public class EcomAuthController extends ExceptionHandling {
         return ResponseEntity.ok().headers(jwtHeader).body(loginUser);
     }
 
+    @GetMapping("/secured-endpoint")
+    public ResponseEntity<String> securedEndpoint(@RequestHeader(name = "Authorization") String token) {
+        // Xác minh token
+        if (jWTTokenProvider.validateToken(token)) {
+            // Truy cập thông tin người dùng từ token
+            String userId = jWTTokenProvider.getSubject(token);
+            // Thực hiện logic an toàn ở đây
+            return ResponseEntity.ok("Secured endpoint accessed by user with ID: " + userId);
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+        }
+    }
+
     @PostMapping("/register")
     public ResponseEntity<EcomUser> register(@RequestBody EcomUser user) throws UsernameExistException, EmailExistException, UserNotFoundException {
         EcomUser newUser = iEcomUserService.register(user.getFirstName(), user.getLastName(), user.getUsername(), user.getEmail());
@@ -64,7 +78,7 @@ public class EcomAuthController extends ExceptionHandling {
         return ResponseEntity.created(uri).body(newUser);
     }
 
-    @PostMapping("/add")
+    @PostMapping("/ecom-user/add")
     public ResponseEntity<EcomUser> addNewUser(@RequestParam("firstName") String firstName,
                                            @RequestParam("lastName") String lastName,
                                            @RequestParam("username") String username,
@@ -78,7 +92,7 @@ public class EcomAuthController extends ExceptionHandling {
         return ResponseEntity.ok().body(newUser);
     }
 
-    @PostMapping("/update")
+    @PostMapping("/ecom-user/update")
     public ResponseEntity<EcomUser> update(@RequestParam("currentUsername") String currentUsername,
                                        @RequestParam("firstName") String firstName,
                                        @RequestParam("lastName") String lastName,

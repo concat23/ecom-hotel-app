@@ -1,6 +1,7 @@
 package dev.concat.vab.ecomhotelappbackend.security;
 
 import dev.concat.vab.ecomhotelappbackend.filter.*;
+import dev.concat.vab.ecomhotelappbackend.provider.JWTTokenProvider;
 import dev.concat.vab.ecomhotelappbackend.repository.IEcomUserRepository;
 import dev.concat.vab.ecomhotelappbackend.service.implementation.EcomUserServiceImpl;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +13,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -37,7 +39,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 	private final UserDetailsService userDetailsService;
 	private final BCryptPasswordEncoder bCryptPasswordEncoder;
 	private final IEcomUserRepository iEcomUserRepository;
-
+	private final JWTTokenProvider jwtTokenProvider;
 	@Override
 	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
 		auth.userDetailsService(userDetailsService).passwordEncoder(bCryptPasswordEncoder);
@@ -67,16 +69,30 @@ protected void configure(HttpSecurity http) throws Exception {
 	http.cors().disable();
 	http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 	http.authorizeRequests().antMatchers(PUBLIC_URLS).permitAll();
-//	http.authorizeRequests().antMatchers(GET,"/api/ecom-user/**").hasAnyAuthority("ROLE_USER","ROLE_MANAGER");
-//	http.authorizeRequests().antMatchers(POST,"/api/ecom-user/create").hasAnyAuthority("ROLE_ADMIN","ROLE_SUPER_ADMIN");
+	http.authorizeRequests().antMatchers(POST,"/api/auth/login", "/api/auth/register").hasAnyAuthority("ROLE_ADMIN");
+	http.authorizeRequests().antMatchers(GET,"/api/auth/list/**").hasAnyAuthority("ROLE_ADMIN");
+	http.authorizeRequests().antMatchers(GET,"/api/auth/ecom-user/**").hasAnyAuthority("ROLE_ADMIN");
+	http.authorizeRequests().antMatchers(POST,"/api/auth/ecom-user/add").hasAnyAuthority("ROLE_ADMIN");
 //      http.authorizeRequests().anyRequest().permitAll();
 	http.authorizeRequests().anyRequest().authenticated();
 	http.exceptionHandling().accessDeniedHandler(jWTAccessDeniedHandler)
 							.authenticationEntryPoint(jwtAuthenticationEntryPoint);
 	http.addFilter(customAuthenticationFilter);
-	http.addFilterBefore(new CustomAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class);
-}
-	
+	http.addFilterBefore(new JwtAuthorizationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class);
+
+	}
+
+	@Override
+	public void configure(WebSecurity web) throws Exception {
+		web.ignoring().antMatchers("/static/css/**, /static/js/**, *.ico");
+
+		// swagger
+		web.ignoring().antMatchers(
+				"/v2/api-docs",  "/configuration/ui",
+				"/swagger-resources", "/configuration/security",
+				"/swagger-ui.html", "/webjars/**","/swagger/**");
+	}
+
 	@Bean
 	@Override
 	public AuthenticationManager authenticationManagerBean() throws Exception {

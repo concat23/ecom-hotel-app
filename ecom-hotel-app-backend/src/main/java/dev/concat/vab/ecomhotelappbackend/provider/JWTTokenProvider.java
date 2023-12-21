@@ -27,7 +27,12 @@ import static java.lang.System.currentTimeMillis;
 import static java.util.Arrays.*;
 import static org.hibernate.tool.schema.ast.GeneratedSqlScriptParserTokenTypes.DELIMITER;
 
-
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.UnsupportedJwtException;
+import io.jsonwebtoken.security.SignatureException;
 @Component
 public class JWTTokenProvider {
 
@@ -181,6 +186,27 @@ public class JWTTokenProvider {
 
         return combinedToken;
     }
+
+
+    private final String SECRET_KEY = "yourSecretKey"; // Thay thế bằng secret key thực tế của bạn
+
+    public boolean validateToken(String token) {
+        try {
+            Claims claims = Jwts.parser().setSigningKey(SECRET_KEY).parseClaimsJws(token).getBody();
+
+            // Kiểm tra xem token đã hết hạn chưa
+            if (claims.getExpiration().before(new Date())) {
+                return false; // Token đã hết hạn
+            }
+
+            // Thêm các kiểm tra khác tùy thuộc vào yêu cầu của bạn
+            return true; // Token hợp lệ
+        } catch (SignatureException | MalformedJwtException | UnsupportedJwtException | ExpiredJwtException | IllegalArgumentException e) {
+            // Xử lý các loại lỗi có thể xảy ra khi xác minh token
+            return false;
+        }
+    }
+
 
 
 }
