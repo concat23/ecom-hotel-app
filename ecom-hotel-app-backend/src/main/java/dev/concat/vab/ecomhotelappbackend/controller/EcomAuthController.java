@@ -7,6 +7,7 @@ import dev.concat.vab.ecomhotelappbackend.provider.JWTTokenProvider;
 import dev.concat.vab.ecomhotelappbackend.response.HttpResponse;
 import dev.concat.vab.ecomhotelappbackend.service.IEcomUserService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +27,7 @@ import static dev.concat.vab.ecomhotelappbackend.constant.SecurityConstant.JWT_T
 import static org.springframework.http.HttpStatus.OK;
 
 @RestController
+@Slf4j
 @RequestMapping(path = "/api/auth")
 public class EcomAuthController extends ExceptionHandling {
 
@@ -47,8 +49,8 @@ public class EcomAuthController extends ExceptionHandling {
     public ResponseEntity<EcomUser> login(@RequestBody EcomUser user) {
         authenticate(user.getUsername(), user.getPassword());
         EcomUser loginUser = iEcomUserService.findUserByUsername(user.getUsername());
-        String token = jWTTokenProvider.generateJwtToken(loginUser);
-        loginUser.setAccessToken(token);
+        String tokenValue = iEcomUserService.saveToken(loginUser);
+        log.info("Token: {}",tokenValue);
         this.iEcomUserService.updateAccessToken(loginUser.getUsername(),loginUser.getAccessToken());
         EcomUserPrincipal principal = new EcomUserPrincipal(loginUser);
         HttpHeaders jwtHeader = getJwtHeader(principal);

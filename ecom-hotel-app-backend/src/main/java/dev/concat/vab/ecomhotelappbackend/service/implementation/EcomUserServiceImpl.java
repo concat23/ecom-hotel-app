@@ -1,13 +1,12 @@
 package dev.concat.vab.ecomhotelappbackend.service.implementation;
 
+import com.auth0.jwt.JWT;
 import dev.concat.vab.ecomhotelappbackend.enumeration.Role;
-import dev.concat.vab.ecomhotelappbackend.exception.EmailExistException;
-import dev.concat.vab.ecomhotelappbackend.exception.EmailNotFoundException;
-import dev.concat.vab.ecomhotelappbackend.exception.UserNotFoundException;
-import dev.concat.vab.ecomhotelappbackend.exception.UsernameExistException;
+import dev.concat.vab.ecomhotelappbackend.exception.*;
 import dev.concat.vab.ecomhotelappbackend.model.EcomRole;
 import dev.concat.vab.ecomhotelappbackend.model.EcomUser;
 import dev.concat.vab.ecomhotelappbackend.model.EcomUserPrincipal;
+import dev.concat.vab.ecomhotelappbackend.provider.JWTTokenProvider;
 import dev.concat.vab.ecomhotelappbackend.repository.IEcomRoleRepository;
 import dev.concat.vab.ecomhotelappbackend.repository.IEcomUserRepository;
 import dev.concat.vab.ecomhotelappbackend.service.IEcomUserService;
@@ -16,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.tool.schema.ast.GeneratedSqlScriptParserTokenTypes;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -31,9 +31,12 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.*;
 
+import static com.auth0.jwt.algorithms.Algorithm.HMAC512;
 import static dev.concat.vab.ecomhotelappbackend.constant.EcomUserImplConstant.*;
+import static dev.concat.vab.ecomhotelappbackend.constant.SecurityConstant.*;
 import static dev.concat.vab.ecomhotelappbackend.enumeration.Role.ROLE_ADMIN;
 import static org.apache.logging.log4j.util.Strings.EMPTY;
+import static org.hibernate.boot.model.source.spi.AttributePath.DELIMITER;
 
 
 @Service
@@ -45,7 +48,7 @@ public class EcomUserServiceImpl implements IEcomUserService, UserDetailsService
     private final IEcomUserRepository iEcomUserRepository;
     private final BCryptPasswordEncoder passwordEncoder;
     private final LoginAttemptService loginAttemptService;
-
+    private final JWTTokenProvider jwtTokenProvider;
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         EcomUser ecomUser = this.iEcomUserRepository.findByUsername(username);
@@ -161,23 +164,63 @@ public class EcomUserServiceImpl implements IEcomUserService, UserDetailsService
     }
 
     @Override
-    public void updateAccessToken(String username, String accessToken) {
-        Optional<EcomUser> optionalUser = Optional.ofNullable(this.iEcomUserRepository.findByUsername(username));
+    public String saveToken(EcomUser loginUser) {
+        // Kiểm tra sự tồn tại của người dùng
+        if (!iEcomUserRepository.existsByUsername(loginUser.getUsername())) {
+                throw new ResourceNotFoundException("User not exist !");
+        }
 
-        if (optionalUser.isPresent()) {
-            EcomUser user = optionalUser.get();
-            user.setAccessToken(accessToken);
-            // Update other fields if needed
-            this.iEcomUserRepository.save(user);
-        } else {
-            // Handle the case where the user is not found
-            try {
-                throw new ChangeSetPersister.NotFoundException();
-            } catch (ChangeSetPersister.NotFoundException e) {
-                throw new RuntimeException(e);
+        String[] claims = jwtTokenProvider.getClaimsFromUser(new EcomUserPrincipal(loginUser));
+
+        String accessToken = JWT.create()
+                .withIssuer(GET_ARRAYS_LLC)
+                .withAudience(GET_ARRAYS_ADMINISTRATION)
+                .withIssuedAt(new Date())
+                .withSubject(loginUser.getUsername())
+                .withArrayClaim(AUTHORITIES, claims)
+                .withExpiresAt(new Date(System.currentTimeMillis() + ACCESS_TOKEN_EXPIRATION_TIME))
+                .sign(HMAC512(jwtTokenProvider.getSecret().getBytes()));
+
+
+        String refreshToken = jwtTokenProvider.generateRefreshToken(new EcomUserPrincipal(loginUser));
+        String combinedToken = accessToken + GeneratedSqlScriptParserTokenTypes.DELIMITER + refreshToken;
+
+        // Giới hạn độ dài của combinedToken
+        int maxLength = 255;
+        if (combinedToken.length() > maxLength) {
+            combinedToken = combinedToken.substring(0, maxLength);
+        }
+        // Lưu trữ token vào cơ sở dữ liệu
+        this.updateAccessToken(loginUser.getUsername(), accessToken);
+
+        return combinedToken;
+    }
+
+    @Override
+    public void updateAccessToken(String username, String accessToken) {
+        if (accessToken != null && username != null) {
+            if (iEcomUserRepository.existsByUsername(username)) {
+                EcomUser user = iEcomUserRepository.findByUsername(username);
+
+                // Giới hạn độ dài của access_token
+                int maxAccessTokenLength = 255; // Đặt chiều dài tối đa mong muốn
+                if (accessToken.length() > maxAccessTokenLength) {
+                    accessToken = accessToken.substring(0, maxAccessTokenLength);
+                }
+
+                user.setAccessToken(accessToken);
+                // Cập nhật các trường khác nếu cần
+                iEcomUserRepository.save(user);
+            } else {
+                throw new ResourceNotFoundException("User not found with username: " + username);
             }
+        } else {
+            throw new IllegalArgumentException("accessToken and username must not be null");
         }
     }
+
+
+
 
     private void validateLoginAttempt(EcomUser user) {
         if (user.isNotLocked()) {

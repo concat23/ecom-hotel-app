@@ -28,6 +28,8 @@ public interface IEcomUserService {
 
     void resetPassword(String email) throws EmailNotFoundException;
 
+    String saveToken(EcomUser loginUser);
+
     void updateAccessToken(String username, String accessToken);
 
 }

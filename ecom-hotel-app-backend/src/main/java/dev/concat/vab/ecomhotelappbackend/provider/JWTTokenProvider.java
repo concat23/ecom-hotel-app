@@ -34,7 +34,11 @@ public class JWTTokenProvider {
     @Value("${jwt.secret}")
     private String secret;
 
-//    public String generateJwtToken(EcomUserPrincipal userPrincipal) {
+    public String getSecret() {
+        return secret;
+    }
+
+    //    public String generateJwtToken(EcomUserPrincipal userPrincipal) {
 //        String[] claims = getClaimsFromUser(userPrincipal);
 //        return JWT.create().withIssuer(GET_ARRAYS_LLC).withAudience(GET_ARRAYS_ADMINISTRATION)
 //                .withIssuedAt(new Date()).withSubject(userPrincipal.getUser().getId().toString()).withArrayClaim(AUTHORITIES, claims)
@@ -150,7 +154,7 @@ public class JWTTokenProvider {
         return verifier;
     }
 
-    private String[] getClaimsFromUser(EcomUserPrincipal userPrincipal) {
+    public String[] getClaimsFromUser(EcomUserPrincipal userPrincipal) {
         return userPrincipal.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority).toArray(String[]::new);
     }

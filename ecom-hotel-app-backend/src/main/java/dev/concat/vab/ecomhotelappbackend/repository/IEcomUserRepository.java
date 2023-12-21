@@ -12,4 +12,6 @@ public interface IEcomUserRepository extends JpaRepository<EcomUser,Long> {
     EcomUser findByUsername(String username);
 
     EcomUser findByEmail(String email);
+
+    boolean existsByUsername(String username);
 }
