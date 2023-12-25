@@ -32,4 +32,5 @@ public interface IEcomUserService {
 
     void updateAccessToken(String username, String accessToken);
 
+    EcomUser login(String usernameOrEmail, String password);
 }
