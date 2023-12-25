@@ -1,5 +1,6 @@
 package dev.concat.vab.ecomhotelappbackend.controller;
 
+import dev.concat.vab.ecomhotelappbackend.dto.LoginDTO;
 import dev.concat.vab.ecomhotelappbackend.exception.*;
 import dev.concat.vab.ecomhotelappbackend.model.EcomUser;
 import dev.concat.vab.ecomhotelappbackend.model.EcomUserPrincipal;
@@ -48,14 +49,12 @@ public class EcomAuthController extends ExceptionHandling {
 
     //String firstName, String lastName, String username, String email, String role, boolean isNonlocked, boolean isActive, MultipartFile profileImage
     @PostMapping("/login")
-    public ResponseEntity<EcomUser> login(@RequestBody Map<String, String> loginRequest) {
-        String usernameOrEmail = loginRequest.get("usernameOrEmail");
-        String password = loginRequest.get("password");
+    public ResponseEntity<EcomUser> login(@RequestBody LoginDTO loginDTO) {
 
-        authenticate(usernameOrEmail, password);
+        authenticate(loginDTO.getUsernameOrEmail(), loginDTO.getPassword());
 
         // Call the service method with username or email
-        EcomUser loginUser = iEcomUserService.login(usernameOrEmail, password);
+        EcomUser loginUser = iEcomUserService.login(loginDTO.getUsernameOrEmail(), loginDTO.getPassword());
 
         String tokenValue = iEcomUserService.saveToken(loginUser);
         log.info("Token: {}", tokenValue);
