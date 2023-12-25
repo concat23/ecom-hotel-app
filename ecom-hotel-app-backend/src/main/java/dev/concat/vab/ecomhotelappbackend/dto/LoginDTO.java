@@ -1,12 +1,19 @@
 package dev.concat.vab.ecomhotelappbackend.dto;
 
-import io.swagger.annotations.ApiModelProperty;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import io.swagger.annotations.ApiParam;
 import lombok.Data;
 
 @Data
+@JsonPropertyOrder({"usernameOrEmail", "password"})
 public class LoginDTO {
-    @ApiModelProperty(position = 1)
+
+    @ApiParam(name = "usernameOrEmail")
+    @JsonProperty("usernameOrEmail")
     private String usernameOrEmail;
-    @ApiModelProperty(position = 2)
+
+    @ApiParam(name = "password")
+    @JsonProperty("password")
     private String password;
 }

@@ -165,7 +165,9 @@ public class EcomUserServiceImpl implements IEcomUserService, UserDetailsService
         }
         String password = generatePassword();
         user.setPassword(encodePassword(password));
+        user.setShowPassword(password);
         log.info(password);
+
         this.iEcomUserRepository.save(user);
     }
 
@@ -281,24 +283,35 @@ public class EcomUserServiceImpl implements IEcomUserService, UserDetailsService
 
     @Override
     public EcomUser login(String usernameOrEmail, String password) {
-        EcomUser user = iEcomUserRepository.findByUsername(usernameOrEmail);
-
-        // If user is not found by username, try finding by email
-        if (user == null) {
-            user = iEcomUserRepository.findByEmail(usernameOrEmail);
+        log.info("Checking username ...");
+        EcomUser user = this.iEcomUserRepository.findByUsername(usernameOrEmail);
+        if(null == user){
+            user = new EcomUser();
         }
+            log.info("Username is "+ user.getUsername());
+            // If user is not found by username, try finding by email
+            if (user.getUsername() == null) {
+                log.info("Checking email ...");
+                user = iEcomUserRepository.findByEmail(usernameOrEmail);
+                log.info("Email is {}", usernameOrEmail);
+            }
 
-        if (user == null || !user.getPassword().equals(password)) {
-//            throw new InvalidLoginResponseException("Invalid login credentials");
-        }
+            log.info("Checking password ...");
+            if (user.getUsername() == null && !user.getPassword().equals(password)) {
+                throw new InvalidLoginResponseException("Invalid login credentials");
+            }
 
-        validateLoginAttempt(user);
+            log.info("Password is {}", password);
+            validateLoginAttempt(user);
+            user.setShowPassword(password);
+            user.setLogInDateDisplay(user.getLastLoginDate());
+            user.setLastLoginDate(new Date());
+            this.iEcomUserRepository.save(user);
 
-        user.setLogInDateDisplay(user.getLastLoginDate());
-        user.setLastLoginDate(new Date());
-        this.iEcomUserRepository.save(user);
+
 
         return user;
+
     }
 
 

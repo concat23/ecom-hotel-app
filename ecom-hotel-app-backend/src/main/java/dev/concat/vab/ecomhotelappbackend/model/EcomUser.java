@@ -27,6 +27,7 @@ public class EcomUser {
     private String username;
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
+    private String showPassword;
     private String email;
     private Date lastLoginDate;
     private Date logInDateDisplay;
@@ -88,6 +89,14 @@ public class EcomUser {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getShowPassword() {
+        return showPassword;
+    }
+
+    public void setShowPassword(String showPassword) {
+        this.showPassword = showPassword;
     }
 
     public String getEmail() {

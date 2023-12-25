@@ -9,9 +9,11 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface IEcomUserRepository extends JpaRepository<EcomUser,Long> {
-    EcomUser findByUsername(String username);
+    @Query("SELECT u FROM EcomUser u WHERE u.username = :username")
+    EcomUser findByUsername(@Param("username") String username);
 
-    EcomUser findByEmail(String email);
+    @Query("SELECT u FROM EcomUser u WHERE u.email = :email")
+    EcomUser findByEmail(@Param("email") String email);
 
     boolean existsByUsername(String username);
 }
