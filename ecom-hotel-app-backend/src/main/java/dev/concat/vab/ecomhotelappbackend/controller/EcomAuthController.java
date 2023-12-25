@@ -1,5 +1,6 @@
 package dev.concat.vab.ecomhotelappbackend.controller;
 
+import dev.concat.vab.ecomhotelappbackend.dto.LoginDTO;
 import dev.concat.vab.ecomhotelappbackend.exception.*;
 import dev.concat.vab.ecomhotelappbackend.model.EcomUser;
 import dev.concat.vab.ecomhotelappbackend.model.EcomUserPrincipal;
@@ -23,6 +24,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.io.IOException;
 import java.net.URI;
 import java.util.List;
+import java.util.Map;
 
 import static dev.concat.vab.ecomhotelappbackend.constant.SecurityConstant.JWT_TOKEN_HEADER;
 import static org.springframework.http.HttpStatus.OK;
@@ -47,16 +49,24 @@ public class EcomAuthController extends ExceptionHandling {
 
     //String firstName, String lastName, String username, String email, String role, boolean isNonlocked, boolean isActive, MultipartFile profileImage
     @PostMapping("/login")
-    public ResponseEntity<EcomUser> login(@RequestBody EcomUser user) {
-        authenticate(user.getUsername(), user.getPassword());
-        EcomUser loginUser = iEcomUserService.findUserByUsername(user.getUsername());
+    public ResponseEntity<EcomUser> login(@RequestBody LoginDTO loginDTO) {
+
+        authenticate(loginDTO.getUsernameOrEmail(), loginDTO.getPassword());
+
+        // Call the service method with username or email
+        EcomUser loginUser = iEcomUserService.login(loginDTO.getUsernameOrEmail(), loginDTO.getPassword());
+
         String tokenValue = iEcomUserService.saveToken(loginUser);
-        log.info("Token: {}",tokenValue);
-        this.iEcomUserService.updateAccessToken(loginUser.getUsername(),loginUser.getAccessToken());
+        log.info("Token: {}", tokenValue);
+
+        this.iEcomUserService.updateAccessToken(loginUser.getUsername(), loginUser.getAccessToken());
+
         EcomUserPrincipal principal = new EcomUserPrincipal(loginUser);
         HttpHeaders jwtHeader = getJwtHeader(principal);
+
         return ResponseEntity.ok().headers(jwtHeader).body(loginUser);
     }
+
 
     @GetMapping("/secured-endpoint")
     public ResponseEntity<String> securedEndpoint(@RequestHeader(name = "Authorization") String token) {

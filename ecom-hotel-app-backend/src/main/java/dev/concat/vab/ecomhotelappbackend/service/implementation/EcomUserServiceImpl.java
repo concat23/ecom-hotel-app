@@ -50,22 +50,28 @@ public class EcomUserServiceImpl implements IEcomUserService, UserDetailsService
     private final LoginAttemptService loginAttemptService;
     private final JWTTokenProvider jwtTokenProvider;
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        EcomUser ecomUser = this.iEcomUserRepository.findByUsername(username);
+    public UserDetails loadUserByUsername(String usernameOrEmail) throws UsernameNotFoundException {
+        EcomUser ecomUser = this.iEcomUserRepository.findByUsername(usernameOrEmail);
+
+        // If not found by username, try finding by email
         if (ecomUser == null) {
-            log.error(NO_USER_BY_USERNAME + username);
-            throw new UsernameNotFoundException(NO_USER_BY_USERNAME + username);
-        } else {
-            validateLoginAttempt(ecomUser);
-            ecomUser.setLogInDateDisplay(ecomUser.getLastLoginDate());
-            ecomUser.setLastLoginDate(new Date());
-            this.iEcomUserRepository.save(ecomUser);
-            EcomUserPrincipal ecomUserPrincipal = new EcomUserPrincipal(ecomUser);
-            log.info(USER_FROM_USER_DETAILS_SERVICE + username);
-            return ecomUserPrincipal;
+            ecomUser = this.iEcomUserRepository.findByEmail(usernameOrEmail);
+
+            if (ecomUser == null) {
+                log.error(NO_USER_BY_USERNAME + usernameOrEmail);
+                throw new UsernameNotFoundException(NO_USER_BY_USERNAME + usernameOrEmail);
+            }
         }
 
+        validateLoginAttempt(ecomUser);
+        ecomUser.setLogInDateDisplay(ecomUser.getLastLoginDate());
+        ecomUser.setLastLoginDate(new Date());
+        this.iEcomUserRepository.save(ecomUser);
+        EcomUserPrincipal ecomUserPrincipal = new EcomUserPrincipal(ecomUser);
+        log.info(USER_FROM_USER_DETAILS_SERVICE + usernameOrEmail);
+        return ecomUserPrincipal;
     }
+
 
     @Override
     public EcomUser register(String firstName, String lastName, String username, String email)
@@ -159,7 +165,9 @@ public class EcomUserServiceImpl implements IEcomUserService, UserDetailsService
         }
         String password = generatePassword();
         user.setPassword(encodePassword(password));
+        user.setShowPassword(password);
         log.info(password);
+
         this.iEcomUserRepository.save(user);
     }
 
@@ -272,4 +280,39 @@ public class EcomUserServiceImpl implements IEcomUserService, UserDetailsService
             return null;
         }
     }
+
+    @Override
+    public EcomUser login(String usernameOrEmail, String password) {
+        log.info("Checking username ...");
+        EcomUser user = this.iEcomUserRepository.findByUsername(usernameOrEmail);
+        if(null == user){
+            user = new EcomUser();
+        }
+            log.info("Username is "+ user.getUsername());
+            // If user is not found by username, try finding by email
+            if (user.getUsername() == null) {
+                log.info("Checking email ...");
+                user = iEcomUserRepository.findByEmail(usernameOrEmail);
+                log.info("Email is {}", usernameOrEmail);
+            }
+
+            log.info("Checking password ...");
+            if (user.getUsername() == null && !user.getPassword().equals(password)) {
+                throw new InvalidLoginResponseException("Invalid login credentials");
+            }
+
+            log.info("Password is {}", password);
+            validateLoginAttempt(user);
+            user.setShowPassword(password);
+            user.setLogInDateDisplay(user.getLastLoginDate());
+            user.setLastLoginDate(new Date());
+            this.iEcomUserRepository.save(user);
+
+
+
+        return user;
+
+    }
+
+
 }
