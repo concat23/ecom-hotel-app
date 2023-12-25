@@ -47,7 +47,7 @@ public class SwaggerConfig extends Swagger2DocumentationConfiguration implements
                 .select().apis(RequestHandlerSelectors.withClassAnnotation(RestController.class))
                 .paths(PathSelectors.regex(SECURE_PATH))
                 .build()
-                .tags(new Tag(API_TAG, "All APIs relating to Invoices"));
+                .tags(new Tag(API_TAG, "All APIs relating to Ecom Hotel"));
     }
 
     private ApiInfo apiInfo() {
