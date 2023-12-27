@@ -1,15 +1,28 @@
 package dev.concat.vab.ecomhotelappbackend.enumeration;
 
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+
+import java.util.Set;
+
 import static dev.concat.vab.ecomhotelappbackend.constant.AuthorityConstant.*;
 
 public enum Role {
-    ROLE_USER(USER_AUTHORITIES),
-    ROLE_HR(HR_AUTHORITIES),
-    ROLE_MANAGER(MANAGER_AUTHORITIES),
-    ROLE_ADMIN(ADMIN_AUTHORITIES),
-    ROLE_SUPER_ADMIN(SUPER_ADMIN_AUTHORITIES);
+    USER(USER_AUTHORITIES),
+    HR(HR_AUTHORITIES),
+    MANAGER(MANAGER_AUTHORITIES),
+    ADMIN(ADMIN_AUTHORITIES),
+    SUPER_ADMIN(SUPER_ADMIN_AUTHORITIES);
 
     private String[] authorities;
+
+    public static Role fromName(String name) {
+        for (Role role : values()) {
+            if (role.name().equalsIgnoreCase(name)) {
+                return role;
+            }
+        }
+        throw new IllegalArgumentException("Invalid role name: " + name);
+    }
 
     Role(String... authorities) {
         this.authorities = authorities;
@@ -17,5 +30,14 @@ public enum Role {
 
     public String[] getAuthorities() {
         return authorities;
+    }
+
+    public String getRoleWithPrefix() {
+        return "ROLE_" + this.name();
+    }
+
+    // Additional method to get the role name without the prefix
+    public String getRoleName() {
+        return this.name();
     }
 }
