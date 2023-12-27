@@ -32,8 +32,13 @@ spring:
       org.springframework.data.jpa: DEBUG
       org.hibernate: DEBUG
 
-jwt:
-  secret: secret
+application:
+  security:
+    jwt:
+      secret-key: 40f7X6nrxgumM4h7KsamT7AZ6f9QDQDUHQtld27iFU0wxc9XIBCkkFQ9Qj7LVfMi
+      expiration: 86400000 # a day
+      refresh-token:
+        expiration: 604800000 # 7 days
 
 server:
   port: 8066

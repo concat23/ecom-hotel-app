@@ -1,13 +1,20 @@
 package dev.concat.vab.ecomhotelappbackend.controller;
 
+import dev.concat.vab.ecomhotelappbackend.annotations.TokenId;
+import dev.concat.vab.ecomhotelappbackend.dto.EcomUserDTO;
 import dev.concat.vab.ecomhotelappbackend.dto.LoginDTO;
+import dev.concat.vab.ecomhotelappbackend.enumeration.Role;
 import dev.concat.vab.ecomhotelappbackend.exception.*;
+import dev.concat.vab.ecomhotelappbackend.model.EcomToken;
 import dev.concat.vab.ecomhotelappbackend.model.EcomUser;
 import dev.concat.vab.ecomhotelappbackend.model.EcomUserPrincipal;
-import dev.concat.vab.ecomhotelappbackend.provider.JWTTokenProvider;
+import dev.concat.vab.ecomhotelappbackend.request.AuthRequest;
+import dev.concat.vab.ecomhotelappbackend.request.RegisterRequest;
+import dev.concat.vab.ecomhotelappbackend.response.AuthResponse;
 import dev.concat.vab.ecomhotelappbackend.response.HttpResponse;
-import dev.concat.vab.ecomhotelappbackend.service.IEcomUserService;
-import io.swagger.annotations.Api;
+import dev.concat.vab.ecomhotelappbackend.service.IEcomAuthenticationService;
+import dev.concat.vab.ecomhotelappbackend.service.implementation.TokenService;
+import io.swagger.annotations.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -16,158 +23,152 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URI;
 import java.util.List;
-import java.util.Map;
 
 import static dev.concat.vab.ecomhotelappbackend.constant.SecurityConstant.JWT_TOKEN_HEADER;
 import static org.springframework.http.HttpStatus.OK;
 
 @RestController
 @Slf4j
-@RequestMapping(path = "/api/auth")
+@RequiredArgsConstructor
+@CrossOrigin(origins = "http://localhost:5173")
+@RequestMapping(path= "/api/auth")
+@Api(value = "Ecom Authentication API", tags = "Authentication")
 public class EcomAuthController extends ExceptionHandling {
 
-    private final AuthenticationManager authenticationManager;
-    private final IEcomUserService iEcomUserService;
-    private final UserDetailsService userDetailsService;
-    private final JWTTokenProvider jWTTokenProvider;
+    private final IEcomAuthenticationService iEcomAuthenticationService;
+    private final TokenService tokenService;
+    @PostMapping(path = "/register")
+    @ApiOperation(value = "Register a new user", notes = "Registers a new user with the provided details.")
+    public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest registerRequest) {
+        // Get the Authentication object
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-    public EcomAuthController(AuthenticationManager authenticationManager, IEcomUserService iEcomUserService, JWTTokenProvider jWTTokenProvider,UserDetailsService userDetailsService) {
-        this.authenticationManager = authenticationManager;
-        this.iEcomUserService = iEcomUserService;
-        this.jWTTokenProvider = jWTTokenProvider;
-        this.userDetailsService = userDetailsService;
+        if (authentication != null && authentication.getAuthorities() != null) {
+            authentication.getAuthorities().forEach(authority -> {
+                if (authority instanceof GrantedAuthority) {
+                    String role = ((GrantedAuthority) authority).getAuthority();
+                    log.info("Current user has role: {}", role);
+                }
+            });
+        }
+        return ResponseEntity.ok(this.iEcomAuthenticationService.register(registerRequest));
     }
 
 
-    //String firstName, String lastName, String username, String email, String role, boolean isNonlocked, boolean isActive, MultipartFile profileImage
-    @PostMapping("/login")
-    public ResponseEntity<EcomUser> login(@RequestBody LoginDTO loginDTO) {
-
-        authenticate(loginDTO.getUsernameOrEmail(), loginDTO.getPassword());
-
-        // Call the service method with username or email
-        EcomUser loginUser = iEcomUserService.login(loginDTO.getUsernameOrEmail(), loginDTO.getPassword());
-
-        String tokenValue = iEcomUserService.saveToken(loginUser);
-        log.info("Token: {}", tokenValue);
-
-        this.iEcomUserService.updateAccessToken(loginUser.getUsername(), loginUser.getAccessToken());
-
-        EcomUserPrincipal principal = new EcomUserPrincipal(loginUser);
-        HttpHeaders jwtHeader = getJwtHeader(principal);
-
-        return ResponseEntity.ok().headers(jwtHeader).body(loginUser);
+    @PostMapping(path = "/authenticate")
+    @ApiOperation(value = "Authenticate a user", notes = "Authenticates a user with the provided credentials.")
+    public ResponseEntity<AuthResponse> authenticate(@RequestBody AuthRequest authRequest) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        // Log the roles of the current user
+        if (authentication != null && authentication.getAuthorities() != null) {
+            authentication.getAuthorities().forEach(authority ->
+                    log.info("Current user has role: {}", authority.getAuthority())
+            );
+        }
+        return ResponseEntity.ok(this.iEcomAuthenticationService.authenticate(authRequest));
     }
 
 
-    @GetMapping("/secured-endpoint")
-    public ResponseEntity<String> securedEndpoint(@RequestHeader(name = "Authorization") String token) {
-        // Xác minh token
-        if (jWTTokenProvider.validateToken(token)) {
-            // Truy cập thông tin người dùng từ token
-            String userId = jWTTokenProvider.getSubject(token);
-            // Thực hiện logic an toàn ở đây
-            return ResponseEntity.ok("Secured endpoint accessed by user with ID: " + userId);
+
+    @PutMapping("/{userId}")
+    @ApiOperation(value = "Update user information", notes = "Updates the information of a user with the specified ID.")
+    public ResponseEntity<EcomUser> updateUser(@PathVariable(value = "userId") Long userId, @RequestBody EcomUserDTO ecomUserDTO) {
+        ecomUserDTO.setRole(ecomUserDTO.getRole());
+        EcomUser updatedUser = iEcomAuthenticationService.updateUser(userId, ecomUserDTO);
+        if (updatedUser != null) {
+            return ResponseEntity.ok(updatedUser);
         } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+            return ResponseEntity.notFound().build();
         }
     }
 
-    @PostMapping("/register")
-    public ResponseEntity<EcomUser> register(@RequestBody EcomUser user) throws UsernameExistException, EmailExistException, UserNotFoundException {
-        EcomUser newUser = iEcomUserService.register(user.getFirstName(), user.getLastName(), user.getUsername(), user.getEmail());
-        URI uri = URI.create(ServletUriComponentsBuilder.fromCurrentContextPath().path("/user/find/" + newUser.getUsername()).toUriString());
-        return ResponseEntity.created(uri).body(newUser);
-    }
-
-    @PostMapping("/ecom-user/add")
-    public ResponseEntity<EcomUser> addNewUser(@RequestParam("firstName") String firstName,
-                                           @RequestParam("lastName") String lastName,
-                                           @RequestParam("username") String username,
-                                           @RequestParam("email") String email,
-                                           @RequestParam("role") String role,
-                                           @RequestParam("isActive") String isActive,
-                                           @RequestParam("isNonLocked") String isNonLocked,
-                                           @RequestParam(value = "profileImage", required = false) MultipartFile profileImage) throws UsernameExistException, EmailExistException, UserNotFoundException, IOException {
-        EcomUser newUser = iEcomUserService.addNewUser(firstName, lastName, username, email, role, Boolean.parseBoolean(isNonLocked),
-                Boolean.parseBoolean(isActive), profileImage);
-        return ResponseEntity.ok().body(newUser);
-    }
-
-    @PostMapping("/ecom-user/update")
-    public ResponseEntity<EcomUser> update(@RequestParam("currentUsername") String currentUsername,
-                                       @RequestParam("firstName") String firstName,
-                                       @RequestParam("lastName") String lastName,
-                                       @RequestParam("username") String username,
-                                       @RequestParam("email") String email,
-                                       @RequestParam(value = "role", required = false) String role,
-                                       @RequestParam("isActive") String isActive,
-                                       @RequestParam("isNonLocked") String isNonLocked) throws UsernameExistException, EmailExistException, UserNotFoundException, IOException {
-        EcomUser newUser = iEcomUserService.updateUser(currentUsername, firstName, lastName, username, email, role, Boolean.parseBoolean(isNonLocked),
-                Boolean.parseBoolean(isActive));
-        return ResponseEntity.ok().body(newUser);
-    }
-
-    @GetMapping("/find/{username}")
-    public ResponseEntity<EcomUser> getUser(@PathVariable("username")String username) {
-        EcomUser user = iEcomUserService.findUserByUsername(username);
-        return ResponseEntity.ok().body(user);
-    }
 
     @GetMapping("/list")
-    public ResponseEntity<List<EcomUser>> getAllUsers() {
-        List<EcomUser> users = iEcomUserService.getUsers();
-        return ResponseEntity.ok().body(users);
+    public ResponseEntity<List<EcomUser>> listEcomUserByTokenId(@TokenId Long tokenId) {
+        List<EcomUser> ecomUsers = iEcomAuthenticationService.listEcomUserByTokenId(tokenId);
+        return ResponseEntity.ok(ecomUsers);
     }
 
-    @GetMapping("/reset-password/{email}")
-    public ResponseEntity<HttpResponse> resetPassword(@PathVariable("email") String email) throws EmailNotFoundException {
-        iEcomUserService.resetPassword(email);
-        return response(OK, "Password changed successfully");
-    }
-
-    @DeleteMapping("/delete/{username}")
-    @PreAuthorize("hasAuthority('user:delete')")
-    public ResponseEntity<HttpResponse> deleteUser(@PathVariable("username") String username) throws IOException {
-        iEcomUserService.deleteUser(username);
-        return response(OK, "User deleted successfully");
+    @GetMapping("/all-user")
+    public ResponseEntity<List<EcomUser>> listEcomUser() {
+        List<EcomUser> ecomUsers = iEcomAuthenticationService.listEcomUser();
+        return ResponseEntity.ok(ecomUsers);
     }
 
     @PostMapping("/refresh-token")
-    public ResponseEntity<String> refreshTokens(@RequestHeader(name = "refreshToken") String refreshToken) {
-        String userId = jWTTokenProvider.getSubject(refreshToken);
+    public ResponseEntity<AuthResponse> refreshToken(HttpServletRequest request, HttpServletResponse response)
+            throws IOException, UserNotFoundException {
+        final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+        final String refreshToken;
+        final String userEmail;
 
-        if (jWTTokenProvider.isRefreshTokenValid(userId, refreshToken)) {
-            EcomUserPrincipal userPrincipal = (EcomUserPrincipal) userDetailsService.loadUserByUsername(userId);
-            String newAccessToken = jWTTokenProvider.generateJwtToken(userPrincipal,userPrincipal.getUser().getLastLoginDate());
-            return ResponseEntity.ok(newAccessToken);
-        } else {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Invalid refresh token");
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.badRequest().build();
         }
+
+        refreshToken = authHeader.substring(7);
+        userEmail = iEcomAuthenticationService.extractUsername(refreshToken);
+
+        if (userEmail != null) {
+            EcomUser user = iEcomAuthenticationService.findByEmail(userEmail)
+                    .orElseThrow(() -> new UserNotFoundException("User not found"));
+
+            if (iEcomAuthenticationService.isTokenValid(refreshToken, user)) {
+                String accessToken = iEcomAuthenticationService.generateToken(user);
+                revokeAllUserTokens(user);
+                saveUserToken(user, accessToken);
+
+                AuthResponse authResponse = AuthResponse.builder()
+                        .token(accessToken)
+                        .refreshToken(refreshToken)
+                        .build();
+
+                return ResponseEntity.ok(authResponse);
+            }
+        }
+
+        return ResponseEntity.badRequest().build();
     }
 
+        private void saveUserToken(EcomUser ecomUser, String jwtToken) {
+            EcomToken ecomToken = EcomToken.builder()
+                    .ecomUser(ecomUser)
+                    .accessToken(jwtToken)
+                    .expired(false)
+                    .revoked(false)
+                    .build();
 
-    private HttpHeaders getJwtHeader(EcomUserPrincipal user){
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.add(JWT_TOKEN_HEADER, jWTTokenProvider.generateJwtToken(user,user.getUser().getLastLoginDate()));
-        return httpHeaders;
+            tokenService.saveToken(ecomToken,ecomUser);
+        }
+
+    private void revokeAllUserTokens(EcomUser ecomUser) {
+        List<EcomToken> validUserTokens = tokenService.findAllValidEcomTokenByUser(ecomUser.getId());
+        validUserTokens.forEach(token -> {
+            token.setExpired(true);
+            token.setRevoked(true);
+        });
+        tokenService.saveAllTokens(validUserTokens);
     }
 
-    private void authenticate(String username, String password) {
-        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
-    }
-
-    private ResponseEntity<HttpResponse> response(HttpStatus httpStatus, String message) {
-        return new ResponseEntity<>(new HttpResponse(httpStatus.value(),
-                httpStatus, httpStatus.getReasonPhrase().toUpperCase(), message.toUpperCase()), httpStatus);
+    private void logRoles(Authentication authentication) {
+        if (authentication != null && authentication.getAuthorities() != null) {
+            authentication.getAuthorities().forEach(authority ->
+                    log.info("Current user has role: {}", authority.getAuthority())
+            );
+        }
     }
 
 }
