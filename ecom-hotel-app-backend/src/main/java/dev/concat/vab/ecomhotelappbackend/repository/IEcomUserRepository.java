@@ -17,7 +17,8 @@ public interface IEcomUserRepository extends JpaRepository<EcomUser,Long> {
 
     boolean existsByEmail(String email);
 
-    @Query("SELECT ecomUser FROM EcomUser ecomUser WHERE ecomUser.ecomToken.id = :tokenId")
+    @Query("SELECT ecomUser FROM EcomUser ecomUser JOIN ecomUser.tokens token WHERE token.id = :tokenId")
     List<EcomUser> findUsersByTokenId(@Param("tokenId") Long tokenId);
+
 
 }

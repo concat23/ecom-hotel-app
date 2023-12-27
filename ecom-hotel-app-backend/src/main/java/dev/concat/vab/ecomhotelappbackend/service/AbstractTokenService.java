@@ -5,6 +5,7 @@ import dev.concat.vab.ecomhotelappbackend.model.EcomUser;
 import dev.concat.vab.ecomhotelappbackend.repository.IEcomTokenRepository;
 import lombok.RequiredArgsConstructor;
 
+import java.util.List;
 import java.util.Optional;
 
 
@@ -36,4 +37,9 @@ public abstract class AbstractTokenService {
         }
     }
 
+    public abstract boolean isTokenValid(String token, EcomUser user);
+
+    public abstract List<EcomToken> findAllValidEcomTokenByUser(Long userId);
+
+    public abstract void saveAllTokens(List<EcomToken> tokens);
 }

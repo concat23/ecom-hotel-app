@@ -19,11 +19,14 @@ public class SecurityConstant {
     public static final long REFRESH_TOKEN_EXPIRATION_TIME =  30*60*1000;
     public static final String[] PUBLIC_URLS = {
             "/api/auth/**",
-            "/api/welcome/**",
-            "/swagger-resources/**",
-            "/swagger-ui/**",
             "/v2/api-docs",
+            "/swagger-resources",
+            "/swagger-resources/**",
+            "/configuration/ui",
+            "/configuration/security",
+            "/swagger-ui/**",
             "/webjars/**",
-            "/swagger-ui/index.html"};
+            "/swagger-ui.html"
+    };
 
 }

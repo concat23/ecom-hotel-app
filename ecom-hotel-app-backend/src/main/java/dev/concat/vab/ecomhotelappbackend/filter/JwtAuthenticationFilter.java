@@ -1,5 +1,6 @@
 package dev.concat.vab.ecomhotelappbackend.filter;
 
+import dev.concat.vab.ecomhotelappbackend.repository.IEcomTokenRepository;
 import dev.concat.vab.ecomhotelappbackend.service.IJwtService;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final UserDetailsService userDetailsService;
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
+        if (request.getServletPath().contains("/api/auth")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
         final String authHeader = request.getHeader("Authorization");
         final String jwt;
         final String userEmail;
@@ -38,6 +43,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         userEmail = iJwtService.extractUsername(jwt);
         if(userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null){
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
+
             if(iJwtService.isJwtTokenInvalid(jwt,userDetails)){
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                         userDetails,null,userDetails.getAuthorities()

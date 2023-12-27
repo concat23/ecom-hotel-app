@@ -5,6 +5,7 @@ import dev.concat.vab.ecomhotelappbackend.dto.EcomUserDTO;
 import dev.concat.vab.ecomhotelappbackend.dto.LoginDTO;
 import dev.concat.vab.ecomhotelappbackend.enumeration.Role;
 import dev.concat.vab.ecomhotelappbackend.exception.*;
+import dev.concat.vab.ecomhotelappbackend.model.EcomToken;
 import dev.concat.vab.ecomhotelappbackend.model.EcomUser;
 import dev.concat.vab.ecomhotelappbackend.model.EcomUserPrincipal;
 import dev.concat.vab.ecomhotelappbackend.request.AuthRequest;
@@ -12,6 +13,7 @@ import dev.concat.vab.ecomhotelappbackend.request.RegisterRequest;
 import dev.concat.vab.ecomhotelappbackend.response.AuthResponse;
 import dev.concat.vab.ecomhotelappbackend.response.HttpResponse;
 import dev.concat.vab.ecomhotelappbackend.service.IEcomAuthenticationService;
+import dev.concat.vab.ecomhotelappbackend.service.implementation.TokenService;
 import io.swagger.annotations.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,11 +23,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URI;
 import java.util.List;
@@ -42,9 +49,21 @@ import static org.springframework.http.HttpStatus.OK;
 public class EcomAuthController extends ExceptionHandling {
 
     private final IEcomAuthenticationService iEcomAuthenticationService;
+    private final TokenService tokenService;
     @PostMapping(path = "/register")
     @ApiOperation(value = "Register a new user", notes = "Registers a new user with the provided details.")
     public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest registerRequest) {
+        // Get the Authentication object
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication != null && authentication.getAuthorities() != null) {
+            authentication.getAuthorities().forEach(authority -> {
+                if (authority instanceof GrantedAuthority) {
+                    String role = ((GrantedAuthority) authority).getAuthority();
+                    log.info("Current user has role: {}", role);
+                }
+            });
+        }
         return ResponseEntity.ok(this.iEcomAuthenticationService.register(registerRequest));
     }
 
@@ -52,6 +71,13 @@ public class EcomAuthController extends ExceptionHandling {
     @PostMapping(path = "/authenticate")
     @ApiOperation(value = "Authenticate a user", notes = "Authenticates a user with the provided credentials.")
     public ResponseEntity<AuthResponse> authenticate(@RequestBody AuthRequest authRequest) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        // Log the roles of the current user
+        if (authentication != null && authentication.getAuthorities() != null) {
+            authentication.getAuthorities().forEach(authority ->
+                    log.info("Current user has role: {}", authority.getAuthority())
+            );
+        }
         return ResponseEntity.ok(this.iEcomAuthenticationService.authenticate(authRequest));
     }
 
@@ -76,5 +102,73 @@ public class EcomAuthController extends ExceptionHandling {
         return ResponseEntity.ok(ecomUsers);
     }
 
+    @GetMapping("/all-user")
+    public ResponseEntity<List<EcomUser>> listEcomUser() {
+        List<EcomUser> ecomUsers = iEcomAuthenticationService.listEcomUser();
+        return ResponseEntity.ok(ecomUsers);
+    }
+
+    @PostMapping("/refresh-token")
+    public ResponseEntity<AuthResponse> refreshToken(HttpServletRequest request, HttpServletResponse response)
+            throws IOException, UserNotFoundException {
+        final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+        final String refreshToken;
+        final String userEmail;
+
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        refreshToken = authHeader.substring(7);
+        userEmail = iEcomAuthenticationService.extractUsername(refreshToken);
+
+        if (userEmail != null) {
+            EcomUser user = iEcomAuthenticationService.findByEmail(userEmail)
+                    .orElseThrow(() -> new UserNotFoundException("User not found"));
+
+            if (iEcomAuthenticationService.isTokenValid(refreshToken, user)) {
+                String accessToken = iEcomAuthenticationService.generateToken(user);
+                revokeAllUserTokens(user);
+                saveUserToken(user, accessToken);
+
+                AuthResponse authResponse = AuthResponse.builder()
+                        .token(accessToken)
+                        .refreshToken(refreshToken)
+                        .build();
+
+                return ResponseEntity.ok(authResponse);
+            }
+        }
+
+        return ResponseEntity.badRequest().build();
+    }
+
+        private void saveUserToken(EcomUser ecomUser, String jwtToken) {
+            EcomToken ecomToken = EcomToken.builder()
+                    .ecomUser(ecomUser)
+                    .accessToken(jwtToken)
+                    .expired(false)
+                    .revoked(false)
+                    .build();
+
+            tokenService.saveToken(ecomToken,ecomUser);
+        }
+
+    private void revokeAllUserTokens(EcomUser ecomUser) {
+        List<EcomToken> validUserTokens = tokenService.findAllValidEcomTokenByUser(ecomUser.getId());
+        validUserTokens.forEach(token -> {
+            token.setExpired(true);
+            token.setRevoked(true);
+        });
+        tokenService.saveAllTokens(validUserTokens);
+    }
+
+    private void logRoles(Authentication authentication) {
+        if (authentication != null && authentication.getAuthorities() != null) {
+            authentication.getAuthorities().forEach(authority ->
+                    log.info("Current user has role: {}", authority.getAuthority())
+            );
+        }
+    }
 
 }

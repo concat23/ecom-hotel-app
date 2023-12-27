@@ -4,6 +4,7 @@ import dev.concat.vab.ecomhotelappbackend.builders.EcomUserBuilder;
 import dev.concat.vab.ecomhotelappbackend.converter.EcomUserConverter;
 import dev.concat.vab.ecomhotelappbackend.dto.EcomUserDTO;
 import dev.concat.vab.ecomhotelappbackend.enumeration.Role;
+import dev.concat.vab.ecomhotelappbackend.enumeration.TokenType;
 import dev.concat.vab.ecomhotelappbackend.model.EcomToken;
 import dev.concat.vab.ecomhotelappbackend.model.EcomUser;
 import dev.concat.vab.ecomhotelappbackend.repository.IEcomUserRepository;
@@ -22,6 +23,10 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
+import static dev.concat.vab.ecomhotelappbackend.enumeration.Role.ADMIN;
+import static dev.concat.vab.ecomhotelappbackend.enumeration.Role.USER;
 
 @Service
 @RequiredArgsConstructor
@@ -54,15 +59,18 @@ public class EcomAuthenticationServiceImpl implements IEcomAuthenticationService
                     .message("User with this email already exists. Registration failed.")
                     .build();
         }
-        // Build a new EcomUser
+        List<String> authorities = ADMIN.getAuthorities().stream()
+                .map(Object::toString)
+                .collect(Collectors.toList());
+
         EcomUser ecomUser = new EcomUserBuilder()
                 .withFirstName(registerRequest.getFirstName())
                 .withLastName(registerRequest.getLastName())
                 .withEmail(registerRequest.getEmail())
                 .withPassword(passwordEncoder.encode(registerRequest.getPassword()))
                 .withShowPassword(registerRequest.getPassword())
-                .withAuthorities(Role.USER.getAuthorities())
-                .withRole(Role.USER)
+                .withAuthorities(authorities.toArray(new String[0]))
+                .withRole(ADMIN)
                 .build();
 
         // Save the new user to the repository
@@ -82,6 +90,7 @@ public class EcomAuthenticationServiceImpl implements IEcomAuthenticationService
         // Return the authentication response with the generated token
         return AuthResponse.builder()
                 .success(true)
+                .tokenType(TokenType.BEARER.name())
                 .token(jwtToken)
                 .message("Register successfully.")
                 .build();
@@ -108,13 +117,16 @@ public class EcomAuthenticationServiceImpl implements IEcomAuthenticationService
         EcomToken ecomToken = new EcomToken();
         ecomToken.setAccessToken(newJwtToken);
         tokenService.saveToken(ecomToken, ecomUser);
-
+        if(ecomUser.getId().equals(ecomToken.getEcomUser().getId())){
+            tokenService.deleteToken(ecomToken.getId());
+        }
         // Log successful authentication with user's email
         logger.info("User authenticated successfully: {}", ecomUser.getEmail());
 
         // Return the authentication response with the new token
         return AuthResponse.builder()
                 .success(true)
+                .tokenType(TokenType.BEARER.name())
                 .token(newJwtToken)
                 .message("Login successfully.")
                 .build();
@@ -174,6 +186,11 @@ public class EcomAuthenticationServiceImpl implements IEcomAuthenticationService
     }
 
     @Override
+    public Optional<EcomUser> findByEmail(String email) {
+        return this.iEcomUserRepository.findByEmail(email);
+    }
+
+    @Override
     public List<EcomUser> listEcomUserByTokenId(Long tokenId) {
 
         List<EcomUser> ecomUsers = iEcomUserRepository.findUsersByTokenId(tokenId);
@@ -181,4 +198,50 @@ public class EcomAuthenticationServiceImpl implements IEcomAuthenticationService
         return ecomUsers;
     }
 
+    @Override
+    public List<EcomUser> listEcomUser() {
+        List<EcomUser> ecomUsers = iEcomUserRepository.findAll();
+        return ecomUsers;
+    }
+
+
+    @Override
+    public String extractUsername(String refreshToken) {
+        // Extracting the username from the refresh token
+        String username = iJwtService.extractUsername(refreshToken);
+
+        if (username != null) {
+            logger.info("Extracted username from refresh token: {}", username);
+            return username;
+        } else {
+            logger.warn("Failed to extract username from refresh token");
+            return null;
+        }
+    }
+
+    @Override
+    public boolean isTokenValid(String token, EcomUser user) {
+        // Checking if the token is valid for the specified user
+        if (tokenService.isTokenValid(token, user)) {
+            logger.info("Token is valid for user: {}", user.getEmail());
+            return true;
+        } else {
+            logger.warn("Token is not valid for user: {}", user.getEmail());
+            return false;
+        }
+    }
+
+    @Override
+    public String generateToken(EcomUser user) {
+        // Generating a new token for the specified user
+        String newToken = iJwtService.generateJwtToken(user);
+
+        if (newToken != null) {
+            logger.info("Generated new token for user: {}", user.getEmail());
+            return newToken;
+        } else {
+            logger.warn("Failed to generate new token for user: {}", user.getEmail());
+            return null;
+        }
+    }
 }

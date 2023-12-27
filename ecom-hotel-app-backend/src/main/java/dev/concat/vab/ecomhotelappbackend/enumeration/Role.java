@@ -1,43 +1,53 @@
 package dev.concat.vab.ecomhotelappbackend.enumeration;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
-import static dev.concat.vab.ecomhotelappbackend.constant.AuthorityConstant.*;
+import static dev.concat.vab.ecomhotelappbackend.enumeration.Permission.*;
 
+@RequiredArgsConstructor
 public enum Role {
-    USER(USER_AUTHORITIES),
-    HR(HR_AUTHORITIES),
-    MANAGER(MANAGER_AUTHORITIES),
-    ADMIN(ADMIN_AUTHORITIES),
-    SUPER_ADMIN(SUPER_ADMIN_AUTHORITIES);
+        USER(Collections.emptySet()),
+        ADMIN(
+                Set.of(
+                        ADMIN_READ,
+                        ADMIN_UPDATE,
+                        ADMIN_DELETE,
+                        ADMIN_CREATE,
+                        MANAGER_READ,
+                        MANAGER_UPDATE,
+                        MANAGER_DELETE,
+                        MANAGER_CREATE
+                )
+        ),
+        MANAGER(
+                Set.of(
+                        MANAGER_READ,
+                        MANAGER_UPDATE,
+                        MANAGER_DELETE,
+                        MANAGER_CREATE
+                )
+        )
 
-    private String[] authorities;
+        ;
 
-    public static Role fromName(String name) {
-        for (Role role : values()) {
-            if (role.name().equalsIgnoreCase(name)) {
-                return role;
-            }
+        @Getter
+        private final Set<Permission> permissions;
+
+        public List<SimpleGrantedAuthority> getAuthorities() {
+            var authorities = getPermissions()
+                    .stream()
+                    .map(permission -> new SimpleGrantedAuthority(permission.getPermission()))
+                    .collect(Collectors.toList());
+            authorities.add(new SimpleGrantedAuthority("ROLE_" + this.name()));
+            return authorities;
         }
-        throw new IllegalArgumentException("Invalid role name: " + name);
-    }
-
-    Role(String... authorities) {
-        this.authorities = authorities;
-    }
-
-    public String[] getAuthorities() {
-        return authorities;
-    }
-
-    public String getRoleWithPrefix() {
-        return "ROLE_" + this.name();
-    }
-
-    // Additional method to get the role name without the prefix
-    public String getRoleName() {
-        return this.name();
-    }
 }
+
+

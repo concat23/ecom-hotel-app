@@ -5,6 +5,7 @@ import dev.concat.vab.ecomhotelappbackend.model.EcomUser;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -51,12 +52,16 @@ public class EcomUserBuilder {
 
     public EcomUserBuilder withAuthorities(String[] authorities) {
         if (ecomUser.getRole() != null) {
-            ecomUser.setAuthorities(ecomUser.getRole().getAuthorities());
+            List<SimpleGrantedAuthority> roleAuthorities = ecomUser.getRole().getAuthorities();
+            ecomUser.setAuthorities(roleAuthorities.stream()
+                    .map(SimpleGrantedAuthority::getAuthority).toArray(String[]::new));
         } else {
             ecomUser.setAuthorities(authorities);
         }
         return this;
     }
+
+
 
 
     // Add more with methods for other fields as needed

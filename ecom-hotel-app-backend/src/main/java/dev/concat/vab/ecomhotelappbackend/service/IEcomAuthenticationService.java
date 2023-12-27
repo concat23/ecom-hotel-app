@@ -7,6 +7,7 @@ import dev.concat.vab.ecomhotelappbackend.request.RegisterRequest;
 import dev.concat.vab.ecomhotelappbackend.response.AuthResponse;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface IEcomAuthenticationService {
 
@@ -14,5 +15,12 @@ public interface IEcomAuthenticationService {
     AuthResponse authenticate(AuthRequest authRequest);
 
     List<EcomUser> listEcomUserByTokenId(Long tokenId);
+    List<EcomUser> listEcomUser();
     EcomUser updateUser(Long userId, EcomUserDTO ecomUserDTO);
+
+
+    Optional<EcomUser> findByEmail(String email);
+    String extractUsername(String refreshToken);
+    boolean isTokenValid(String token, EcomUser user);
+    String generateToken(EcomUser user);
 }

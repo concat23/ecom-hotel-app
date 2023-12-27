@@ -39,9 +39,9 @@ public class EcomUser implements UserDetails {
 
     private String[] authorities;
 
-    @OneToOne(mappedBy = "ecomUser", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "ecomUser")
     @JsonBackReference
-    private EcomToken ecomToken;
+    private List<EcomToken> tokens;
 
     @CreatedDate
     private LocalDateTime createdAt = LocalDateTime.now();;
