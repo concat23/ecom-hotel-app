@@ -25,6 +25,8 @@ public interface IEcomTokenRepository extends JpaRepository<EcomToken,Long> {
     @Query("SELECT et FROM EcomToken et JOIN et.ecomUser eu WHERE et.accessToken = :token")
     Optional<EcomToken> findByEcomToken(@Param("token") String token);
 
+    Optional<EcomToken> findByAccessToken(String accessToken);
+
     default boolean isTokenValid(String token, EcomUser user) {
         List<EcomToken> validTokens = findAllValidEcomTokenByUser(user.getId());
         return validTokens.stream().anyMatch(t -> t.getAccessToken().equals(token));

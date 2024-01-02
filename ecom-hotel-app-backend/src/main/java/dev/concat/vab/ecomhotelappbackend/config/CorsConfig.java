@@ -14,7 +14,7 @@ public class CorsConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/api/**")  // Add your specific endpoint
-                        .allowedOrigins("http://localhost:5173")  // Add your frontend URL
+                        .allowedOrigins("http://localhost:5173","http://localhost:8066/swagger-ui/index.html")  // Add your frontend URL
                         .allowedMethods("GET", "POST", "PUT", "DELETE");
             }
         };

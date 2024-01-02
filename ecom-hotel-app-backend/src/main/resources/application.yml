@@ -1,4 +1,18 @@
 spring:
+  profiles:
+    active: local
+
+  security:
+    user:
+      name: user
+      password: password
+      roles: USER
+
+    admin:
+      name: admin
+      password: abc@#123
+      roles: ADMIN, USER
+
   datasource:
     url: jdbc:mysql://127.0.0.1:3303/ecom_db
     password: runningman
@@ -31,15 +45,31 @@ spring:
     level:
       org.springframework.data.jpa: DEBUG
       org.hibernate: DEBUG
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
 
 application:
   security:
     jwt:
-      secret-key: 40f7X6nrxgumM4h7KsamT7AZ6f9QDQDUHQtld27iFU0wxc9XIBCkkFQ9Qj7LVfMi
+      secret-key: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+      use-secret-key-for-hmac: true
       expiration: 86400000 # a day
       refresh-token:
         expiration: 604800000 # 7 days
+    header: Authorization
+
 
 server:
   port: 8066
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+management.endpoint.health.show-details: always
+
+logging:
+  level:
+    org.springframework.security: DEBUG

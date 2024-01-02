@@ -3,7 +3,6 @@ package dev.concat.vab.ecomhotelappbackend.service.implementation;
 import dev.concat.vab.ecomhotelappbackend.builders.EcomUserBuilder;
 import dev.concat.vab.ecomhotelappbackend.converter.EcomUserConverter;
 import dev.concat.vab.ecomhotelappbackend.dto.EcomUserDTO;
-import dev.concat.vab.ecomhotelappbackend.enumeration.Role;
 import dev.concat.vab.ecomhotelappbackend.enumeration.TokenType;
 import dev.concat.vab.ecomhotelappbackend.model.EcomToken;
 import dev.concat.vab.ecomhotelappbackend.model.EcomUser;
@@ -12,7 +11,7 @@ import dev.concat.vab.ecomhotelappbackend.request.AuthRequest;
 import dev.concat.vab.ecomhotelappbackend.request.RegisterRequest;
 import dev.concat.vab.ecomhotelappbackend.response.AuthResponse;
 import dev.concat.vab.ecomhotelappbackend.service.IEcomAuthenticationService;
-import dev.concat.vab.ecomhotelappbackend.service.IJwtService;
+import dev.concat.vab.ecomhotelappbackend.service.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,9 +24,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static dev.concat.vab.ecomhotelappbackend.enumeration.Role.ADMIN;
-import static dev.concat.vab.ecomhotelappbackend.enumeration.Role.USER;
-
 @Service
 @RequiredArgsConstructor
 public class EcomAuthenticationServiceImpl implements IEcomAuthenticationService {
@@ -38,7 +34,7 @@ public class EcomAuthenticationServiceImpl implements IEcomAuthenticationService
     // Autowired dependencies
     private final IEcomUserRepository iEcomUserRepository;
     private final PasswordEncoder passwordEncoder;
-    private final IJwtService iJwtService;
+    private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final EcomUserConverter ecomUserConverter;
     private final TokenService tokenService;
@@ -59,7 +55,7 @@ public class EcomAuthenticationServiceImpl implements IEcomAuthenticationService
                     .message("User with this email already exists. Registration failed.")
                     .build();
         }
-        List<String> authorities = ADMIN.getAuthorities().stream()
+        List<String> authorities = registerRequest.getRole().getAuthorities().stream()
                 .map(Object::toString)
                 .collect(Collectors.toList());
 
@@ -70,14 +66,14 @@ public class EcomAuthenticationServiceImpl implements IEcomAuthenticationService
                 .withPassword(passwordEncoder.encode(registerRequest.getPassword()))
                 .withShowPassword(registerRequest.getPassword())
                 .withAuthorities(authorities.toArray(new String[0]))
-                .withRole(ADMIN)
+                .withRole(registerRequest.getRole())
                 .build();
 
         // Save the new user to the repository
         this.iEcomUserRepository.save(ecomUser);
 
         // Generate a JWT token for the new user
-        String jwtToken = this.iJwtService.generateJwtToken(ecomUser);
+        String jwtToken = this.jwtService.generateToken(ecomUser);
 
         // Create a token entity and save it
         EcomToken ecomToken = new EcomToken();
@@ -91,7 +87,7 @@ public class EcomAuthenticationServiceImpl implements IEcomAuthenticationService
         return AuthResponse.builder()
                 .success(true)
                 .tokenType(TokenType.BEARER.name())
-                .token(jwtToken)
+                .accessToken(jwtToken)
                 .message("Register successfully.")
                 .build();
     }
@@ -111,7 +107,7 @@ public class EcomAuthenticationServiceImpl implements IEcomAuthenticationService
         EcomUser ecomUser = this.iEcomUserRepository.findByEmail(authRequest.getEmail()).orElseThrow();
 
         // Generate a new JWT token for the authenticated user
-        String newJwtToken = this.iJwtService.generateJwtToken(ecomUser);
+        String newJwtToken = this.jwtService.generateToken(ecomUser);
 
         // Create a new EcomToken and save it
         EcomToken ecomToken = new EcomToken();
@@ -127,7 +123,7 @@ public class EcomAuthenticationServiceImpl implements IEcomAuthenticationService
         return AuthResponse.builder()
                 .success(true)
                 .tokenType(TokenType.BEARER.name())
-                .token(newJwtToken)
+                .accessToken(newJwtToken)
                 .message("Login successfully.")
                 .build();
     }
@@ -208,7 +204,7 @@ public class EcomAuthenticationServiceImpl implements IEcomAuthenticationService
     @Override
     public String extractUsername(String refreshToken) {
         // Extracting the username from the refresh token
-        String username = iJwtService.extractUsername(refreshToken);
+        String username = jwtService.extractUsername(refreshToken);
 
         if (username != null) {
             logger.info("Extracted username from refresh token: {}", username);
@@ -234,7 +230,7 @@ public class EcomAuthenticationServiceImpl implements IEcomAuthenticationService
     @Override
     public String generateToken(EcomUser user) {
         // Generating a new token for the specified user
-        String newToken = iJwtService.generateJwtToken(user);
+        String newToken = jwtService.generateToken(user);
 
         if (newToken != null) {
             logger.info("Generated new token for user: {}", user.getEmail());

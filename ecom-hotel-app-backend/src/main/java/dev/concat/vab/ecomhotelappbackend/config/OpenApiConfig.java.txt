@@ -1,0 +1,169 @@
+package dev.concat.vab.ecomhotelappbackend.config;
+
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.enums.SecuritySchemeIn;
+import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
+import io.swagger.v3.oas.annotations.info.Contact;
+import io.swagger.v3.oas.annotations.info.Info;
+import io.swagger.v3.oas.annotations.info.License;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.security.SecurityScheme;
+import io.swagger.v3.oas.annotations.servers.Server;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.servlet.view.InternalResourceViewResolver;
+import springfox.documentation.builders.ApiInfoBuilder;
+import springfox.documentation.builders.PathSelectors;
+import springfox.documentation.builders.RequestHandlerSelectors;
+import springfox.documentation.builders.ResponseMessageBuilder;
+import springfox.documentation.service.*;
+import springfox.documentation.spi.DocumentationType;
+import springfox.documentation.spi.service.contexts.SecurityContext;
+import springfox.documentation.spring.web.plugins.Docket;
+import springfox.documentation.swagger.web.*;
+import springfox.documentation.swagger2.annotations.EnableSwagger2;
+
+import java.util.Collections;
+import java.util.List;
+
+import static dev.concat.vab.ecomhotelappbackend.constant.SwaggerConstant.*;
+import static java.util.Collections.singletonList;
+import static org.springframework.http.HttpHeaders.AUTHORIZATION;
+import static springfox.documentation.spi.DocumentationType.OAS_30;
+
+@Configuration
+@EnableSwagger2
+@EnableWebMvc
+@OpenAPIDefinition(
+        info = @Info(
+                contact = @Contact(
+                        name = "Ecom Hotel",
+                        email = "anhbangluckystar@gmail.com",
+                        url = "https://abc.example.com"
+                ),
+                description = "OpenApi documentation for Spring Security",
+                title = "OpenApi specification - Ecom Hotel",
+                version = "1.0",
+                license = @License(
+                        name = "Licence name",
+                        url = "https://some-url.com"
+                ),
+                termsOfService = "Terms of service"
+        ),
+        servers = {
+                @Server(
+                        description = "Local ENV",
+                        url = "http://localhost:8066"
+                ),
+                @Server(
+                        description = "PROD ENV",
+                        url = "https://abc.example.com"
+                )
+        },
+        security = {
+                @SecurityRequirement(
+                        name = "bearerAuth"
+                )
+        }
+)
+@SecurityScheme(
+        name = "bearerAuth",
+        description = "JWT auth description",
+        scheme = "bearer",
+        type = SecuritySchemeType.HTTP,
+        bearerFormat = "JWT",
+        in = SecuritySchemeIn.HEADER
+)
+public class OpenApiConfig implements WebMvcConfigurer {
+
+    @Value("${spring.profiles.active:local}")
+    private String activeProfile;
+
+    @Bean
+    public Docket apiDocket() {
+        boolean enableSwagger = !"prod".equalsIgnoreCase(activeProfile);
+
+        return new Docket(OAS_30)
+                .apiInfo(apiInfo())
+                .enable(enableSwagger)
+                .forCodeGeneration(true)
+                .securityContexts(enableSwagger ? singletonList(securityContext()) : Collections.emptyList())
+                .securitySchemes(enableSwagger ? singletonList(apiKey()) : Collections.emptyList())
+                .select()
+                .apis(RequestHandlerSelectors.withClassAnnotation(RestController.class))
+                .paths(enableSwagger ? PathSelectors.regex(SECURE_PATH) : PathSelectors.none())
+                .build()
+                .tags(new Tag(API_TAG, "All APIs relating to Ecom Hotel"));
+    }
+
+    private ApiInfo apiInfo() {
+        return new ApiInfoBuilder()
+                .title(API_TITLE)
+                .description(API_DESCRIPTION)
+                .version(API_VERSION)
+                .termsOfServiceUrl(TERM_OF_SERVICE)
+                .contact(new springfox.documentation.service.Contact("Ecom Hotel","https://abc.example.com","anhbangluckystar@gmail.com"))
+                .license(LICENSE)
+                .licenseUrl(LICENSE_URL)
+                .build();
+    }
+
+    private ApiKey apiKey() {
+        return new ApiKey(SECURITY_REFERENCE, AUTHORIZATION, SecuritySchemeIn.HEADER.name());
+    }
+
+    private SecurityContext securityContext() {
+        return SecurityContext.builder().securityReferences(securityReference()).build();
+    }
+
+    private List<SecurityReference> securityReference() {
+        AuthorizationScope[] authorizationScope = { new AuthorizationScope(AUTHORIZATION_SCOPE, AUTHORIZATION_DESCRIPTION) };
+        return singletonList(new SecurityReference(SECURITY_REFERENCE, authorizationScope));
+    }
+
+    @Bean
+    SecurityConfiguration security() {
+        return SecurityConfigurationBuilder.builder()
+                .clientId("test-app-client-id")
+                .clientSecret("test-app-client-secret")
+                .realm("test-app-realm")
+                .appName("test-app")
+                .scopeSeparator(",")
+                .additionalQueryStringParams(null)
+                .useBasicAuthenticationWithAccessCodeGrant(true)
+                .enableCsrfSupport(false)
+                .build();
+    }
+
+    @Bean
+    UiConfiguration uiConfig() {
+        return UiConfigurationBuilder.builder()
+                .deepLinking(true)
+                .displayOperationId(false)
+                .defaultModelsExpandDepth(1)
+                .defaultModelRendering(ModelRendering.MODEL)
+                .displayRequestDuration(true)
+                .docExpansion(DocExpansion.LIST)
+                .filter(false)
+                .maxDisplayedTags(null)
+                .operationsSorter(OperationsSorter.ALPHA)
+                .showExtensions(false)
+                .showCommonExtensions(true)
+                .tagsSorter(TagsSorter.ALPHA)
+                .supportedSubmitMethods(UiConfiguration.Constants.DEFAULT_SUBMIT_METHODS)
+                .validatorUrl(null)
+                .build();
+    }
+
+    @Bean
+    public InternalResourceViewResolver defaultViewResolver() {
+        return new InternalResourceViewResolver();
+    }
+}

@@ -1,9 +1,12 @@
 package dev.concat.vab.ecomhotelappbackend.security;
 
+import dev.concat.vab.ecomhotelappbackend.auditing.ApplicationAuditAware;
 import dev.concat.vab.ecomhotelappbackend.repository.IEcomUserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.domain.AuditorAware;
+import org.springframework.security.access.vote.RoleVoter;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -62,5 +65,18 @@ public class GlobalConfig {
 
             }
         };
+    }
+
+    @Bean
+    public AuditorAware<Long> auditorAware() {
+        return new ApplicationAuditAware();
+    }
+
+
+    @Bean
+    public RoleVoter roleVoter() {
+        RoleVoter roleVoter = new RoleVoter();
+        roleVoter.setRolePrefix("");
+        return roleVoter;
     }
 }
