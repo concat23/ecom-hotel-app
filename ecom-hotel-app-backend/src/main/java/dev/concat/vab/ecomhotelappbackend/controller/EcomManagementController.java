@@ -4,12 +4,19 @@ package dev.concat.vab.ecomhotelappbackend.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.security.RolesAllowed;
+
+import static dev.concat.vab.ecomhotelappbackend.enumeration.Role.ADMIN;
+
 @RestController
-@RequestMapping(path="/api/v1/management")
+@RequestMapping("/api/v1/management")
 @Tag(name = "Management")
 public class EcomManagementController {
+
+
     @Operation(
             description = "Get endpoint for manager",
             summary = "This is a summary for management get endpoint",

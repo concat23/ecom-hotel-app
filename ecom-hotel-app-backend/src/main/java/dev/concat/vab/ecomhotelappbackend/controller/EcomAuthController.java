@@ -31,6 +31,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import javax.annotation.security.RolesAllowed;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -52,8 +53,15 @@ public class EcomAuthController extends ExceptionHandling {
     private final TokenService tokenService;
     @PostMapping(path = "/register")
     @ApiOperation(value = "Register a new user", notes = "Registers a new user with the provided details.")
+// @PreAuthorize("hasAnyRole('ADMIN','USER','MANAGER') and hasAnyAuthority('ADMIN_CREATE','USER_CREATE','MANAGER_CREATE')")
     public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest registerRequest) {
-        // Get the Authentication object
+        logCurrentUserRoles();
+
+        AuthResponse response = iEcomAuthenticationService.register(registerRequest);
+        return ResponseEntity.ok(response);
+    }
+
+    private void logCurrentUserRoles() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication != null && authentication.getAuthorities() != null) {
@@ -64,12 +72,13 @@ public class EcomAuthController extends ExceptionHandling {
                 }
             });
         }
-        return ResponseEntity.ok(this.iEcomAuthenticationService.register(registerRequest));
     }
+
 
 
     @PostMapping(path = "/authenticate")
     @ApiOperation(value = "Authenticate a user", notes = "Authenticates a user with the provided credentials.")
+//    @PreAuthorize("hasAnyAuthority('ADMIN_READ','USER_READ','MANAGER_READ')")
     public ResponseEntity<AuthResponse> authenticate(@RequestBody AuthRequest authRequest) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         // Log the roles of the current user
@@ -84,7 +93,7 @@ public class EcomAuthController extends ExceptionHandling {
 
 
     @PutMapping("/{userId}")
-    @ApiOperation(value = "Update user information", notes = "Updates the information of a user with the specified ID.")
+//    @ApiOperation(value = "Update user information", notes = "Updates the information of a user with the specified ID.")
     public ResponseEntity<EcomUser> updateUser(@PathVariable(value = "userId") Long userId, @RequestBody EcomUserDTO ecomUserDTO) {
         ecomUserDTO.setRole(ecomUserDTO.getRole());
         EcomUser updatedUser = iEcomAuthenticationService.updateUser(userId, ecomUserDTO);
@@ -103,6 +112,8 @@ public class EcomAuthController extends ExceptionHandling {
     }
 
     @GetMapping("/all-user")
+    @RolesAllowed("ADMIN")
+//    @PreAuthorize("hasAnyRole('ADMIN','USER','MANAGER') and hasAnyAuthority('ADMIN_READ','USER_READ','MANAGER_READ')")
     public ResponseEntity<List<EcomUser>> listEcomUser() {
         List<EcomUser> ecomUsers = iEcomAuthenticationService.listEcomUser();
         return ResponseEntity.ok(ecomUsers);
@@ -132,7 +143,7 @@ public class EcomAuthController extends ExceptionHandling {
                 saveUserToken(user, accessToken);
 
                 AuthResponse authResponse = AuthResponse.builder()
-                        .token(accessToken)
+                        .accessToken(accessToken)
                         .refreshToken(refreshToken)
                         .build();
 

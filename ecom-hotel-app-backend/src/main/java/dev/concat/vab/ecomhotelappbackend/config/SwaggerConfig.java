@@ -1,42 +1,26 @@
 package dev.concat.vab.ecomhotelappbackend.config;
 
-import io.swagger.v3.oas.models.security.SecurityScheme;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.config.annotation.EnableWebMvc;
-import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
-import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-import org.springframework.web.servlet.resource.PathResourceResolver;
-import org.springframework.web.servlet.view.InternalResourceViewResolver;
-import springfox.documentation.builders.ApiInfoBuilder;
-import springfox.documentation.builders.PathSelectors;
-import springfox.documentation.builders.RequestHandlerSelectors;
-import springfox.documentation.builders.ResponseMessageBuilder;
-import springfox.documentation.service.*;
-import springfox.documentation.spi.DocumentationType;
-import springfox.documentation.spi.service.contexts.SecurityContext;
-import springfox.documentation.spring.web.plugins.Docket;
-import springfox.documentation.swagger.web.*;
-import springfox.documentation.swagger2.annotations.EnableSwagger2;
-import springfox.documentation.swagger2.configuration.Swagger2DocumentationConfiguration;
-
-import java.util.Collections;
-import java.util.List;
-
 import static dev.concat.vab.ecomhotelappbackend.constant.SwaggerConstant.*;
 import static java.util.Collections.singletonList;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static springfox.documentation.spi.DocumentationType.SWAGGER_2;
 
+import java.util.Collections;
+import java.util.List;
+import io.swagger.v3.oas.models.security.SecurityScheme;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.bind.annotation.RestController;
+import springfox.documentation.builders.PathSelectors;
+import springfox.documentation.builders.RequestHandlerSelectors;
+import springfox.documentation.builders.RequestParameterBuilder;
+import springfox.documentation.service.*;
+import springfox.documentation.spi.service.contexts.SecurityContext;
+import springfox.documentation.spring.web.plugins.Docket;
+import springfox.documentation.swagger.web.*;
+
 @Configuration
-@EnableSwagger2
-@EnableWebMvc
-public class SwaggerConfig extends Swagger2DocumentationConfiguration implements WebMvcConfigurer {
+public class SwaggerConfig {
 
     @Bean
     public Docket apiDocket() {
@@ -47,6 +31,7 @@ public class SwaggerConfig extends Swagger2DocumentationConfiguration implements
                 .select().apis(RequestHandlerSelectors.withClassAnnotation(RestController.class))
                 .paths(PathSelectors.regex(SECURE_PATH))
                 .build()
+                .servers(localServer())
                 .tags(new Tag(API_TAG, "All APIs relating to Ecom Hotel"));
     }
 
@@ -106,8 +91,16 @@ public class SwaggerConfig extends Swagger2DocumentationConfiguration implements
                 .build();
     }
 
-    @Bean
-    public InternalResourceViewResolver defaultViewResolver() {
-        return new InternalResourceViewResolver();
+
+    private Server localServer() {
+        return new Server("Local", "http://localhost:8066", "Local Development Environment", Collections.emptyList(), Collections.EMPTY_LIST);
     }
+
 }
+
+
+
+
+
+
+
