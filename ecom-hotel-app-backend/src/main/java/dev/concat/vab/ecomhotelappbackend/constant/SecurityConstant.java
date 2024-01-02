@@ -18,7 +18,7 @@ public class SecurityConstant {
     public static final long ACCESS_TOKEN_EXPIRATION_TIME =  10*60*1000;
     public static final long REFRESH_TOKEN_EXPIRATION_TIME =  30*60*1000;
     public static final String[] PUBLIC_AUTH ={
-            "/api/auth/**",
+            "/api/v1/auth/**",
     };
 
     public static final String[] SWAGGER_URLS = {

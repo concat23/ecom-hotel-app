@@ -1,23 +1,24 @@
 package dev.concat.vab.ecomhotelappbackend.config;
 
-import static dev.concat.vab.ecomhotelappbackend.constant.SwaggerConstant.*;
-import static java.util.Collections.singletonList;
-import static org.springframework.http.HttpHeaders.AUTHORIZATION;
-import static springfox.documentation.spi.DocumentationType.SWAGGER_2;
-
-import java.util.Collections;
-import java.util.List;
-import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.bind.annotation.RestController;
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
-import springfox.documentation.builders.RequestParameterBuilder;
 import springfox.documentation.service.*;
 import springfox.documentation.spi.service.contexts.SecurityContext;
 import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger.web.*;
+
+import static dev.concat.vab.ecomhotelappbackend.constant.SwaggerConstant.*;
+import static java.util.Collections.singletonList;
+import static org.springframework.http.HttpHeaders.AUTHORIZATION;
+import static springfox.documentation.spi.DocumentationType.SWAGGER_2;
+
+
+import java.util.Collections;
+import java.util.List;
+
 
 @Configuration
 public class SwaggerConfig {
@@ -45,7 +46,7 @@ public class SwaggerConfig {
     }
 
     private ApiKey apiKey() {
-        return new ApiKey(SECURITY_REFERENCE, AUTHORIZATION, SecurityScheme.In.HEADER.name());
+        return new ApiKey(SECURITY_REFERENCE, AUTHORIZATION, "header");
     }
 
     private SecurityContext securityContext() {

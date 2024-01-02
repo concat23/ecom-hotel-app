@@ -45,7 +45,7 @@ import static org.springframework.http.HttpStatus.OK;
 @Slf4j
 @RequiredArgsConstructor
 @CrossOrigin(origins = "http://localhost:5173")
-@RequestMapping(path= "/api/auth")
+@RequestMapping(path= "/api/v1/auth")
 @Api(value = "Ecom Authentication API", tags = "Authentication")
 public class EcomAuthController extends ExceptionHandling {
 
